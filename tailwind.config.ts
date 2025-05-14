@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				betting: {
+					'bg': '#121c2b',
+					'card': '#1b2432',
+					'input': '#2c3545',
+					'green': '#1e5a33',
 				}
 			},
 			borderRadius: {
