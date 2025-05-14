@@ -4,6 +4,7 @@ import { BettingHouse } from "./BettingHouse";
 import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { ApostaBoostedCalculator } from "./ApostaBoostedCalculator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Bet {
   odd: string;
@@ -21,6 +22,7 @@ interface Result {
 }
 
 export default function SurebetCalculator() {
+  const isMobile = useIsMobile();
   const [numBets, setNumBets] = useState(3);
   const [bets, setBets] = useState<Bet[]>(Array(5).fill(null).map(() => ({
     odd: "2.00",
@@ -100,24 +102,28 @@ export default function SurebetCalculator() {
   });
 
   return (
-    <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4">
-      <Logo />
+    <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-4 md:py-8 px-2 md:px-4">
+      <div className="w-full max-w-xs md:max-w-full">
+        <Logo />
+      </div>
       
-      <h1 className="text-3xl font-bold mb-8">Bet sem medo</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8">Bet sem medo</h1>
 
-      <div className="mb-6">
-        <label className="mr-4">Número de Casas:</label>
-        <select
-          value={numBets}
-          onChange={(e) => setNumBets(Number(e.target.value))}
-          className="p-2 bg-betting-input text-white rounded"
-        >
-          {[2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
+      <div className="mb-4 md:mb-6 w-full flex justify-center">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+          <label className="text-sm md:text-base">Número de Casas:</label>
+          <select
+            value={numBets}
+            onChange={(e) => setNumBets(Number(e.target.value))}
+            className="p-2 bg-betting-input text-white rounded text-sm md:text-base w-32"
+          >
+            {[2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4 w-full max-w-6xl">
-        <div className="flex-shrink-0">
+      <div className="flex flex-col md:flex-row flex-wrap justify-center gap-4 w-full max-w-6xl">
+        <div className="w-full md:w-auto">
           <ApostaBoostedCalculator />
         </div>
         
@@ -134,36 +140,38 @@ export default function SurebetCalculator() {
         </div>
       </div>
 
-      <div className="mt-10 w-full max-w-4xl">
-        <h2 className="text-xl font-semibold mb-4 text-center">Resultados</h2>
-        <table className="w-full text-left table-auto border-collapse">
-          <thead>
-            <tr className="bg-betting-card">
-              <th className="px-4 py-2">Casa</th>
-              <th className="px-4 py-2">Retorno</th>
-              <th className="px-4 py-2">Lucro/Prejuízo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((r, i) => (
-              <tr key={i} className="bg-betting-input">
-                <td className="px-4 py-2">Casa {r.index + 1}</td>
-                <td className="px-4 py-2">R$ {r.retorno}</td>
-                <td className="px-4 py-2">R$ {r.lucro}</td>
+      <div className="mt-6 md:mt-10 w-full max-w-full overflow-x-auto px-2">
+        <h2 className="text-lg md:text-xl font-semibold mb-2 md:mb-4 text-center">Resultados</h2>
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left table-auto border-collapse min-w-[300px]">
+            <thead>
+              <tr className="bg-betting-card">
+                <th className="px-2 md:px-4 py-2 text-sm md:text-base">Casa</th>
+                <th className="px-2 md:px-4 py-2 text-sm md:text-base">Retorno</th>
+                <th className="px-2 md:px-4 py-2 text-sm md:text-base">Lucro/Prejuízo</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {results.map((r, i) => (
+                <tr key={i} className="bg-betting-input">
+                  <td className="px-2 md:px-4 py-2 text-sm md:text-base">Casa {r.index + 1}</td>
+                  <td className="px-2 md:px-4 py-2 text-sm md:text-base">R$ {r.retorno}</td>
+                  <td className="px-2 md:px-4 py-2 text-sm md:text-base">R$ {r.lucro}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
+      <footer className="mt-6 md:mt-10 text-center text-xs md:text-sm opacity-60 flex flex-col items-center">
         <p className="mb-2">Nos siga no Instagram e Telegram</p>
         <div className="flex space-x-4">
           <a href="https://t.me/betsemmedo" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-            <MessageCircle size={24} />
+            <MessageCircle size={isMobile ? 20 : 24} />
           </a>
           <a href="https://www.instagram.com/betsemmedo?igsh=MW1rcjM0Z3I2aTVsNw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
-            <Instagram size={24} />
+            <Instagram size={isMobile ? 20 : 24} />
           </a>
         </div>
       </footer>
