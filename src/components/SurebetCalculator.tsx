@@ -69,6 +69,7 @@ export default function SurebetCalculator() {
     const fixedValue = parseFloat(fixedBet.value);
     if (!fixedOdd || !fixedValue || fixedValue < 0) return;
 
+    // Calculate return based on whether it's a freebet or not
     const fixedReturn = fixedBet.hasFreebet
       ? (fixedOdd - 1) * fixedValue
       : fixedOdd * fixedValue;
@@ -97,18 +98,49 @@ export default function SurebetCalculator() {
     const value = parseFloat(bet.value);
     if (!odd || !value) return { index, retorno: "0", lucro: "0" };
 
+    // Calculate return based on whether it's a freebet or not
     const retorno = bet.hasFreebet
       ? (odd - 1) * value
       : odd * value;
 
-    const totalApostado = bets.slice(0, numBets).reduce((acc, b) => acc + (parseFloat(b.value) || 0), 0);
-    const lucro = retorno - totalApostado;
+    // Calculate total invested, excluding freebets
+    const totalInvested = bets.slice(0, numBets).reduce((acc, b) => {
+      // Only add to invested amount if it's not a freebet
+      const betValue = parseFloat(b.value) || 0;
+      return acc + (!b.hasFreebet ? betValue : 0);
+    }, 0);
+    
+    // For the lucro calculation, we need to account for all bets that would be lost
+    // if this particular bet wins. We exclude the current bet's stake from the total invested.
+    const otherBetsValue = bets.slice(0, numBets).reduce((acc, b, i) => {
+      if (i === index) return acc; // Skip the winning bet
+      const betValue = parseFloat(b.value) || 0;
+      return acc + (!b.hasFreebet ? betValue : 0); // Only count real money investments
+    }, 0);
+
+    // Lucro is what you get back minus what you invested in other bets
+    const lucro = retorno - otherBetsValue;
+    
     return { 
       index, 
       retorno: retorno.toFixed(2), 
       lucro: lucro.toFixed(2) 
     };
   });
+
+  // Calculate total invested excluding freebets for the summary section
+  const totalInvested = bets.slice(0, numBets).reduce((acc, b) => {
+    const betValue = parseFloat(b.value) || 0;
+    return acc + (!b.hasFreebet ? betValue : 0);
+  }, 0);
+
+  // Find the minimum return from all bets for the guaranteed profit calculation
+  const minReturnBet = results.reduce((min, result) => {
+    const lucro = parseFloat(result.lucro);
+    return lucro < parseFloat(min.lucro) ? result : min;
+  }, { index: -1, retorno: "Infinity", lucro: "Infinity" });
+
+  const guaranteedProfit = parseFloat(minReturnBet.lucro);
 
   return (
     <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-4 md:py-8 px-2 md:px-4">
@@ -164,6 +196,29 @@ export default function SurebetCalculator() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Summary section */}
+      <div className="mt-6 w-full max-w-full px-2">
+        <div className="bg-betting-card p-4 rounded-lg">
+          <h3 className="font-semibold mb-2 text-center">Resumo</h3>
+          <p className="flex justify-between">
+            <span>Investimento total:</span> 
+            <span className="font-bold">R$ {totalInvested.toFixed(2)}</span>
+          </p>
+          <p className="flex justify-between">
+            <span>Lucro garantido:</span> 
+            <span className={`font-bold ${guaranteedProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              R$ {guaranteedProfit.toFixed(2)}
+            </span>
+          </p>
+          <p className="flex justify-between">
+            <span>ROI:</span> 
+            <span className={`font-bold ${guaranteedProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {totalInvested > 0 ? ((guaranteedProfit / totalInvested) * 100).toFixed(2) : "0.00"}%
+            </span>
+          </p>
         </div>
       </div>
 
