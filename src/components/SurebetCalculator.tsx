@@ -136,7 +136,7 @@ export default function SurebetCalculator() {
       </div>
 
       <BettingTable tableData={tableData} minReturn={minReturn} />
-      <ResultsSummary guaranteedProfit={guaranteedProfit - totalInvested} totalInvested={totalInvested} />
+      <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
       <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
         <p className="mb-2">Nos siga no Instagram e Telegram</p>
