@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { Logo } from "./Logo";
-import { Instagram, Telegram } from "lucide-react";
+import { Instagram, MessageCircle } from "lucide-react";
 
 interface Bet {
   odd: string;
@@ -153,7 +152,7 @@ export default function SurebetCalculator() {
         <p className="mb-2">Nos siga no Instagram e Telegram</p>
         <div className="flex space-x-4">
           <a href="https://t.me/betsemmedo" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-            <Telegram size={24} />
+            <MessageCircle size={24} />
           </a>
           <a href="https://www.instagram.com/betsemmedo?igsh=MW1rcjM0Z3I2aTVsNw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
             <Instagram size={24} />
