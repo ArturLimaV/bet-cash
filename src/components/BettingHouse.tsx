@@ -8,6 +8,7 @@ interface BettingData {
   hasCommission: boolean;
   commission: string;
   hasFreebet: boolean;
+  stakeIncrease: string; // New field for stake increase percentage
 }
 
 interface BettingHouseProps {
@@ -22,10 +23,19 @@ export function BettingHouse({ index, data, onChange, onFixStake, isFixed }: Bet
   const rawOdd = parseFloat(data.odd);
   let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 
+  // Apply commission if present
   if (data.hasCommission && data.commission !== "") {
     const commissionValue = parseFloat(data.commission);
     if (!isNaN(commissionValue)) {
       baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
+    }
+  }
+  
+  // Apply stake increase if present
+  if (data.stakeIncrease && data.stakeIncrease !== "") {
+    const increaseValue = parseFloat(data.stakeIncrease);
+    if (!isNaN(increaseValue)) {
+      baseOdd = ((baseOdd - 1) * (1 + (increaseValue / 100))) + 1;
     }
   }
 
@@ -55,6 +65,17 @@ export function BettingHouse({ index, data, onChange, onFixStake, isFixed }: Bet
         <option value="Lay">Lay</option>
       </select>
 
+      {/* New field for stake increase percentage */}
+      <label className="block mb-1 md:mb-2 text-sm md:text-base">Aumento de Aposta (%)</label>
+      <input
+        type="number"
+        step="0.1"
+        placeholder="Ex: 25 para 25%"
+        className="w-full p-1 md:p-2 rounded bg-betting-input text-white mb-3 md:mb-4 text-sm md:text-base"
+        value={data.stakeIncrease || ""}
+        onChange={(e) => onChange(index, { ...data, stakeIncrease: e.target.value })}
+      />
+      
       <label className="block mb-1 md:mb-2 text-sm md:text-base">Valor</label>
       <input
         type="number"

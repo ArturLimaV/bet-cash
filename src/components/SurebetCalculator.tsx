@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
-import { ApostaBoostedCalculator } from "./ApostaBoostedCalculator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Bet {
@@ -13,6 +12,7 @@ interface Bet {
   hasCommission: boolean;
   commission: string;
   hasFreebet: boolean;
+  stakeIncrease: string;
 }
 
 interface Result {
@@ -30,7 +30,8 @@ export default function SurebetCalculator() {
     type: "Back",
     hasCommission: false,
     commission: "",
-    hasFreebet: false
+    hasFreebet: false,
+    stakeIncrease: ""
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
@@ -47,6 +48,14 @@ export default function SurebetCalculator() {
       const commissionValue = parseFloat(bet.commission);
       if (!isNaN(commissionValue)) {
         baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
+      }
+    }
+    
+    // Apply stake increase if present
+    if (bet.stakeIncrease && bet.stakeIncrease !== "") {
+      const increaseValue = parseFloat(bet.stakeIncrease);
+      if (!isNaN(increaseValue)) {
+        baseOdd = ((baseOdd - 1) * (1 + (increaseValue / 100))) + 1;
       }
     }
 
@@ -122,22 +131,16 @@ export default function SurebetCalculator() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row flex-wrap justify-center gap-4 w-full max-w-6xl">
-        <div className="w-full md:w-auto">
-          <ApostaBoostedCalculator />
-        </div>
-        
-        <div className="flex flex-wrap gap-4 justify-center flex-grow">
-          {bets.slice(0, numBets).map((bet, index) => (
-            <BettingHouse
-              key={index}
-              index={index}
-              data={bet}
-              onChange={handleChange}
-              onFixStake={handleFixStake}
-            />
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-4 justify-center w-full max-w-6xl">
+        {bets.slice(0, numBets).map((bet, index) => (
+          <BettingHouse
+            key={index}
+            index={index}
+            data={bet}
+            onChange={handleChange}
+            onFixStake={handleFixStake}
+          />
+        ))}
       </div>
 
       <div className="mt-6 md:mt-10 w-full max-w-full overflow-x-auto px-2">
