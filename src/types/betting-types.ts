@@ -6,7 +6,7 @@ export interface Bet {
   hasCommission: boolean;
   commission: string;
   hasFreebet: boolean;
-  stakeIncrease: string;
+  increase: string; // Changed from stakeIncrease to increase
 }
 
 export interface TableRowData {

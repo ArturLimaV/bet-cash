@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Bet } from "@/types/betting-types";
 
@@ -20,15 +21,14 @@ export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouse
     }
   }
   
-  // Apply stake increase if present
-  if (data.stakeIncrease && data.stakeIncrease !== "") {
-    const increaseValue = parseFloat(data.stakeIncrease);
-    if (!isNaN(increaseValue)) {
-      baseOdd = ((baseOdd - 1) * (1 + (increaseValue / 100))) + 1;
-    }
+  // Apply increase if present
+  const aumentoValue = parseFloat(data.increase);
+  let oddReal = baseOdd;
+  if (!isNaN(aumentoValue) && aumentoValue > 0) {
+    oddReal = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
   }
 
-  const realOdd = baseOdd?.toFixed(3);
+  const realOdd = oddReal.toFixed(3);
 
   return (
     <div className="bg-[#1b2432] text-white p-6 rounded-lg w-full max-w-xs border border-gray-700">
@@ -44,6 +44,16 @@ export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouse
       />
       <p className="text-yellow-400 text-xs mt-1">Odd real: {realOdd}</p>
 
+      <label className="block mt-4 mb-2">Aumento (%)</label>
+      <input
+        type="number"
+        step="0.01"
+        className="w-full p-2 rounded bg-[#2c3545] text-white"
+        placeholder="Digite o aumento %"
+        value={data.increase || ""}
+        onChange={(e) => onChange(index, { ...data, increase: e.target.value })}
+      />
+
       <label className="block mt-4 mb-2">Tipo</label>
       <select
         className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
@@ -53,17 +63,6 @@ export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouse
         <option value="Back">Back</option>
         <option value="Lay">Lay</option>
       </select>
-
-      {/* Campo para aumento de aposta */}
-      <label className="block mb-2">Aumento de Aposta (%)</label>
-      <input
-        type="number"
-        step="0.1"
-        placeholder="Ex: 25 para 25%"
-        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
-        value={data.stakeIncrease || ""}
-        onChange={(e) => onChange(index, { ...data, stakeIncrease: e.target.value })}
-      />
 
       <label className="block mb-2">Valor</label>
       <input

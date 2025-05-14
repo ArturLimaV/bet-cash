@@ -19,7 +19,7 @@ export default function SurebetCalculator() {
     hasCommission: false,
     commission: "",
     hasFreebet: false,
-    stakeIncrease: ""
+    increase: "" // Changed from stakeIncrease to increase
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
@@ -75,16 +75,8 @@ export default function SurebetCalculator() {
       ? (odd - 1) * value 
       : odd * value;
     
-    // For profit calculation, we only consider the money lost on other bets
-    // and don't subtract the current bet's value if it's a freebet
-    const otherBetsValue = activeBets.reduce((acc, b, i) => {
-      if (i === index) return acc; // Skip the winning bet
-      const betValue = parseFloat(b.value) || 0;
-      return acc + (!b.hasFreebet ? betValue : 0); // Count only real investments
-    }, 0);
-    
-    // Profit is what you get back minus what you invested in other bets
-    const lucro = retorno - otherBetsValue;
+    // For profit calculation, we only subtract the total investment
+    const lucro = retorno - totalInvested;
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
@@ -106,20 +98,11 @@ export default function SurebetCalculator() {
     if (!odd || !value) return 0;
     
     // Calculate return based on whether it's a freebet or not
-    const retorno = bet.hasFreebet ? (odd - 1) * value : odd * value;
-    
-    // For profit, subtract only the value invested in other bets
-    const otherBetsValue = activeBets.reduce((acc, b, i) => {
-      if (i === index) return acc;
-      const betValue = parseFloat(b.value) || 0;
-      return acc + (!b.hasFreebet ? betValue : 0);
-    }, 0);
-    
-    return retorno - otherBetsValue;
+    return bet.hasFreebet ? (odd - 1) * value : odd * value;
   });
 
   const minReturn = Math.min(...fixedReturns);
-  const guaranteedProfit = minReturn;
+  const guaranteedProfit = minReturn - totalInvested;
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4">
@@ -153,7 +136,7 @@ export default function SurebetCalculator() {
       </div>
 
       <BettingTable tableData={tableData} minReturn={minReturn} />
-      <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
+      <ResultsSummary guaranteedProfit={guaranteedProfit - totalInvested} totalInvested={totalInvested} />
 
       <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
         <p className="mb-2">Nos siga no Instagram e Telegram</p>

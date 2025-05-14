@@ -12,12 +12,10 @@ export const calculateRealOdd = (bet: Bet): number => {
     }
   }
   
-  // Apply stake increase if present
-  if (bet.stakeIncrease && bet.stakeIncrease !== "") {
-    const increaseValue = parseFloat(bet.stakeIncrease);
-    if (!isNaN(increaseValue)) {
-      baseOdd = ((baseOdd - 1) * (1 + (increaseValue / 100))) + 1;
-    }
+  // Apply increase if present (renamed from stakeIncrease to increase)
+  const aumentoValue = parseFloat(bet.increase);
+  if (!isNaN(aumentoValue) && aumentoValue > 0) {
+    baseOdd = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
   }
 
   return baseOdd;
