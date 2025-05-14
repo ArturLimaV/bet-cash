@@ -1,25 +1,14 @@
-
 import React from "react";
-
-interface BettingData {
-  odd: string;
-  value: string;
-  type: string;
-  hasCommission: boolean;
-  commission: string;
-  hasFreebet: boolean;
-  stakeIncrease: string; // Mantemos o campo de aumento de aposta
-}
+import { Bet } from "@/types/betting-types";
 
 interface BettingHouseProps {
   index: number;
-  data: BettingData;
-  onChange: (index: number, data: BettingData) => void;
+  data: Bet;
+  onChange: (index: number, data: Bet) => void;
   onFixStake: (index: number) => void;
-  isFixed?: boolean;
 }
 
-export function BettingHouse({ index, data, onChange, onFixStake, isFixed }: BettingHouseProps) {
+export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouseProps) {
   const rawOdd = parseFloat(data.odd);
   let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 

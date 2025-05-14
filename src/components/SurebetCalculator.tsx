@@ -1,19 +1,13 @@
 
 import React, { useState } from "react";
 import { BettingHouse } from "./BettingHouse";
+import { BettingTable } from "./betting/BettingTable";
+import { ResultsSummary } from "./betting/ResultsSummary";
 import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface Bet {
-  odd: string;
-  value: string;
-  type: string;
-  hasCommission: boolean;
-  commission: string;
-  hasFreebet: boolean;
-  stakeIncrease: string;
-}
+import { Bet, TableRowData } from "@/types/betting-types";
+import { calculateRealOdd } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -32,28 +26,6 @@ export default function SurebetCalculator() {
     const updated = [...bets];
     updated[index] = updatedBet;
     setBets(updated);
-  };
-
-  const calculateRealOdd = (bet: Bet) => {
-    let rawOdd = parseFloat(bet.odd);
-    let baseOdd = bet.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
-
-    if (bet.hasCommission && bet.commission !== "") {
-      const commissionValue = parseFloat(bet.commission);
-      if (!isNaN(commissionValue)) {
-        baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
-      }
-    }
-    
-    // Apply stake increase if present
-    if (bet.stakeIncrease && bet.stakeIncrease !== "") {
-      const increaseValue = parseFloat(bet.stakeIncrease);
-      if (!isNaN(increaseValue)) {
-        baseOdd = ((baseOdd - 1) * (1 + (increaseValue / 100))) + 1;
-      }
-    }
-
-    return baseOdd;
   };
 
   const handleFixStake = (fixedIndex: number) => {
@@ -87,29 +59,31 @@ export default function SurebetCalculator() {
   };
 
   const activeBets = bets.slice(0, numBets);
+  
+  // Calculate total invested amount (excluding freebets)
   const totalInvested = activeBets.reduce((acc, b) => {
-    // Só considerar apostas reais (não freebets) no cálculo do investimento total
     return acc + (!b.hasFreebet ? (parseFloat(b.value) || 0) : 0);
   }, 0);
   
-  const tableData = activeBets.map((bet, index) => {
+  // Calculate table data for each bet outcome
+  const tableData: TableRowData[] = activeBets.map((bet, index) => {
     const value = parseFloat(bet.value) || 0;
     const odd = calculateRealOdd(bet);
     
-    // Calcular o retorno baseado em se é freebet ou não
+    // Calculate return based on whether it's a freebet or not
     const retorno = bet.hasFreebet 
       ? (odd - 1) * value 
       : odd * value;
     
-    // Para o cálculo do lucro, precisamos considerar apenas as apostas perdidas nas outras casas
-    // e não subtrair o valor da aposta atual se for freebet
+    // For profit calculation, we only consider the money lost on other bets
+    // and don't subtract the current bet's value if it's a freebet
     const otherBetsValue = activeBets.reduce((acc, b, i) => {
-      if (i === index) return acc; // Pular a aposta vencedora
+      if (i === index) return acc; // Skip the winning bet
       const betValue = parseFloat(b.value) || 0;
-      return acc + (!b.hasFreebet ? betValue : 0); // Contar apenas investimentos reais
+      return acc + (!b.hasFreebet ? betValue : 0); // Count only real investments
     }, 0);
     
-    // Lucro é o que você recebe de volta menos o que investiu nas outras apostas
+    // Profit is what you get back minus what you invested in other bets
     const lucro = retorno - otherBetsValue;
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
@@ -125,16 +99,16 @@ export default function SurebetCalculator() {
     };
   });
   
-  // Calcular os retornos para cada aposta
+  // Calculate fixed returns for each bet
   const fixedReturns = activeBets.map((bet, index) => {
     const odd = calculateRealOdd(bet);
     const value = parseFloat(bet.value);
     if (!odd || !value) return 0;
     
-    // Calcular retorno baseado em se é freebet ou não
+    // Calculate return based on whether it's a freebet or not
     const retorno = bet.hasFreebet ? (odd - 1) * value : odd * value;
     
-    // Para o lucro, subtrair apenas o valor investido nas outras apostas
+    // For profit, subtract only the value invested in other bets
     const otherBetsValue = activeBets.reduce((acc, b, i) => {
       if (i === index) return acc;
       const betValue = parseFloat(b.value) || 0;
@@ -178,48 +152,8 @@ export default function SurebetCalculator() {
         ))}
       </div>
 
-      <div className="mt-10 w-full max-w-4xl overflow-x-auto">
-        <h2 className="text-xl font-semibold mb-4 text-center">Distribuição das apostas</h2>
-        <table className="w-full text-left table-auto border-collapse min-w-[600px]">
-          <thead>
-            <tr className="bg-[#1b2432]">
-              <th className="px-4 py-2">Casa</th>
-              <th className="px-4 py-2">Valor</th>
-              <th className="px-4 py-2">% da Aposta</th>
-              <th className="px-4 py-2">Lucro</th>
-              <th className="px-4 py-2">Retorno</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((data) => (
-              <tr key={data.index} className="bg-[#2c3545]">
-                <td className="px-4 py-2">Casa {data.index + 1}</td>
-                <td className="px-4 py-2">R$ {data.value.toFixed(2)}</td>
-                <td className="px-4 py-2">{data.percentage}%</td>
-                <td className={`px-4 py-2 font-semibold ${data.lucroClass}`}>
-                  R$ {data.lucro.toFixed(2)}
-                </td>
-                <td className="px-4 py-2">R$ {data.retorno.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="mt-4 text-right">
-          <p className="text-lg">Retorno garantido: <span className="text-green-400 font-bold">R$ {minReturn.toFixed(2)}</span></p>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold mb-2">Resultados</h2>
-          <p>Lucro garantido: <span className={guaranteedProfit >= 0 ? "text-green-400" : "text-red-400"}>
-            <strong>R$ {guaranteedProfit.toFixed(2)}</strong>
-          </span></p>
-          <p>ROI: <span className={guaranteedProfit >= 0 ? "text-green-400" : "text-red-400"}>
-            <strong>{totalInvested > 0 ? ((guaranteedProfit / totalInvested) * 100).toFixed(2) : "0.00"}%</strong>
-          </span></p>
-          <p>Investimento total: <span className="text-white font-bold">R$ {totalInvested.toFixed(2)}</span></p>
-        </div>
-      </div>
+      <BettingTable tableData={tableData} minReturn={minReturn} />
+      <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
       <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
         <p className="mb-2">Nos siga no Instagram e Telegram</p>
