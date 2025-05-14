@@ -1,7 +1,9 @@
+
 import React, { useState } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
+import { ApostaBoostedCalculator } from "./ApostaBoostedCalculator";
 
 interface Bet {
   odd: string;
@@ -114,16 +116,22 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      <div className="flex gap-4 flex-wrap justify-center">
-        {bets.slice(0, numBets).map((bet, index) => (
-          <BettingHouse
-            key={index}
-            index={index}
-            data={bet}
-            onChange={handleChange}
-            onFixStake={handleFixStake}
-          />
-        ))}
+      <div className="flex flex-wrap justify-center gap-4 w-full max-w-6xl">
+        <div className="flex-shrink-0">
+          <ApostaBoostedCalculator />
+        </div>
+        
+        <div className="flex flex-wrap gap-4 justify-center flex-grow">
+          {bets.slice(0, numBets).map((bet, index) => (
+            <BettingHouse
+              key={index}
+              index={index}
+              data={bet}
+              onChange={handleChange}
+              onFixStake={handleFixStake}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="mt-10 w-full max-w-4xl">
