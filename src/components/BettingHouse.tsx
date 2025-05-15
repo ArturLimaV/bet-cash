@@ -1,15 +1,23 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Bet } from "@/types/betting-types";
+import { Check } from "lucide-react";
 
 interface BettingHouseProps {
   index: number;
   data: Bet;
   onChange: (index: number, data: Bet) => void;
   onFixStake: (index: number) => void;
+  isStakeFixed?: boolean;
 }
 
-export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouseProps) {
+export function BettingHouse({ 
+  index, 
+  data, 
+  onChange, 
+  onFixStake,
+  isStakeFixed = false
+}: BettingHouseProps) {
   const rawOdd = parseFloat(data.odd);
   let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 
@@ -108,11 +116,16 @@ export function BettingHouse({ index, data, onChange, onFixStake }: BettingHouse
       </div>
 
       <button
-        className="w-full bg-gray-600 text-white py-2 px-4 rounded disabled:opacity-50"
+        className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${
+          isStakeFixed 
+            ? "bg-betting-green text-white" 
+            : "bg-gray-600 text-white"
+        }`}
         onClick={() => onFixStake(index)}
         disabled={!(parseFloat(data.value) > 0)}
       >
-        Fixar Stake
+        {isStakeFixed && <Check size={16} />}
+        {isStakeFixed ? "Stake Fixada" : "Fixar Stake"}
       </button>
     </div>
   );

@@ -12,6 +12,7 @@ import { calculateRealOdd } from "@/utils/betting-utils";
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
   const [numBets, setNumBets] = useState(3);
+  const [fixedStakeIndex, setFixedStakeIndex] = useState<number | null>(null);
   const [bets, setBets] = useState<Bet[]>(Array(5).fill(null).map(() => ({
     odd: "2.00",
     value: "",
@@ -19,13 +20,18 @@ export default function SurebetCalculator() {
     hasCommission: false,
     commission: "",
     hasFreebet: false,
-    increase: "" // Changed from stakeIncrease to increase
+    increase: ""
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
     const updated = [...bets];
     updated[index] = updatedBet;
     setBets(updated);
+    
+    // Resetar o índice de stake fixada se o valor da aposta fixada for alterado
+    if (fixedStakeIndex === index && updatedBet.value !== bets[index].value) {
+      setFixedStakeIndex(null);
+    }
   };
 
   const handleFixStake = (fixedIndex: number) => {
@@ -56,9 +62,15 @@ export default function SurebetCalculator() {
     });
 
     setBets([...updated, ...bets.slice(numBets)]);
+    setFixedStakeIndex(fixedIndex);
   };
 
   const activeBets = bets.slice(0, numBets);
+  
+  // Collect freebet indexes for visual indication
+  const freebetIndexes = activeBets
+    .map((bet, index) => bet.hasFreebet ? index : -1)
+    .filter(index => index !== -1);
   
   // Calculate total invested amount (excluding freebets)
   const totalInvested = activeBets.reduce((acc, b) => {
@@ -116,7 +128,10 @@ export default function SurebetCalculator() {
         <label className="mr-4">Número de Casas:</label>
         <select
           value={numBets}
-          onChange={(e) => setNumBets(Number(e.target.value))}
+          onChange={(e) => {
+            setNumBets(Number(e.target.value));
+            setFixedStakeIndex(null); // Reset fixed stake quando mudar número de casas
+          }}
           className="p-2 bg-[#2c3545] text-white rounded"
         >
           {[2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
@@ -131,11 +146,16 @@ export default function SurebetCalculator() {
             data={bet}
             onChange={handleChange}
             onFixStake={handleFixStake}
+            isStakeFixed={fixedStakeIndex === index}
           />
         ))}
       </div>
 
-      <BettingTable tableData={tableData} minReturn={minReturn} />
+      <BettingTable 
+        tableData={tableData} 
+        minReturn={minReturn}
+        freebetIndexes={freebetIndexes} 
+      />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
       <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
