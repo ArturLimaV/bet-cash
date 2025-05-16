@@ -63,6 +63,7 @@ export default function SurebetCalculator() {
       : fixedOdd * fixedValue;
 
     const updated = activeBets.map((bet, i) => {
+      // Não alterar a stake da aposta fixada
       if (i === fixedIndex) return bet;
 
       const odd = calculateRealOdd(bet);
@@ -78,7 +79,18 @@ export default function SurebetCalculator() {
       };
     });
 
-    setBets([...updated, ...bets.slice(numBets)]);
+    // Atualizar apenas os valores das stakes, preservando todos os outros campos
+    const newBets = [...bets];
+    updated.forEach((bet, i) => {
+      if (i !== fixedIndex) {
+        newBets[i] = {
+          ...newBets[i],
+          value: bet.value
+        };
+      }
+    });
+
+    setBets(newBets);
   };
 
   const activeBets = bets.slice(0, numBets);
