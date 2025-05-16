@@ -28,10 +28,8 @@ export default function SurebetCalculator() {
     updated[index] = updatedBet;
     setBets(updated);
     
-    // Resetar o índice de stake fixada se o valor da aposta fixada for alterado
-    if (fixedStakeIndex === index && updatedBet.value !== bets[index].value) {
-      setFixedStakeIndex(null);
-    }
+    // Remover o reset da stake fixa - deixar o usuário controlar manualmente
+    // quando deseja fixar ou desafixar a stake
   };
 
   // Atualização automática quando qualquer aposta mudar
@@ -42,8 +40,14 @@ export default function SurebetCalculator() {
   }, [bets]);
 
   const handleFixStake = (fixedIndex: number) => {
-    distributeStakes(fixedIndex);
-    setFixedStakeIndex(fixedIndex);
+    // Se já estiver fixada neste índice, desmarcar
+    if (fixedStakeIndex === fixedIndex) {
+      setFixedStakeIndex(null);
+    } else {
+      // Caso contrário, fixar neste índice e distribuir as stakes
+      distributeStakes(fixedIndex);
+      setFixedStakeIndex(fixedIndex);
+    }
   };
 
   // Função separada para distribuir stakes com base na stake fixada
