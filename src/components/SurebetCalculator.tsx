@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -117,18 +118,6 @@ export default function SurebetCalculator() {
     const value = parseFloat(bet.value) || 0;
     const odd = calculateRealOdd(bet);
     
-    // Verifica se a odd é NaN (campo vazio ou inválido)
-    if (isNaN(odd)) {
-      return {
-        index,
-        value,
-        percentage: "N/A",
-        retorno: NaN,
-        lucro: NaN,
-        lucroClass: "text-gray-400"
-      };
-    }
-    
     // Calculate return based on whether it's a freebet or not
     const retorno = bet.hasFreebet 
       ? (odd - 1) * value 
@@ -153,20 +142,18 @@ export default function SurebetCalculator() {
   // Calculate fixed returns for each bet
   const fixedReturns = activeBets.map((bet, index) => {
     // Ignorar cálculos para campos de odd vazios
-    if (bet.odd === "") return NaN;
+    if (bet.odd === "") return 0;
     
     const odd = calculateRealOdd(bet);
     const value = parseFloat(bet.value);
-    if (isNaN(odd) || !value) return NaN;
+    if (isNaN(odd) || !value) return 0;
     
     // Calculate return based on whether it's a freebet or not
     return bet.hasFreebet ? (odd - 1) * value : odd * value;
   });
 
-  // Filtra os valores NaN antes de calcular o mínimo
-  const validReturns = fixedReturns.filter(val => !isNaN(val));
-  const minReturn = validReturns.length > 0 ? Math.min(...validReturns) : NaN;
-  const guaranteedProfit = !isNaN(minReturn) ? minReturn - totalInvested : NaN;
+  const minReturn = Math.min(...fixedReturns);
+  const guaranteedProfit = minReturn - totalInvested;
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
