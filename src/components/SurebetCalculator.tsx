@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
 import { ResultsSummary } from "./betting/ResultsSummary";
@@ -34,7 +34,20 @@ export default function SurebetCalculator() {
     }
   };
 
+  // Atualização automática quando qualquer aposta mudar
+  useEffect(() => {
+    if (fixedStakeIndex !== null) {
+      distributeStakes(fixedStakeIndex);
+    }
+  }, [bets]);
+
   const handleFixStake = (fixedIndex: number) => {
+    distributeStakes(fixedIndex);
+    setFixedStakeIndex(fixedIndex);
+  };
+
+  // Função separada para distribuir stakes com base na stake fixada
+  const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
     const fixedOdd = calculateRealOdd(fixedBet);
@@ -62,7 +75,6 @@ export default function SurebetCalculator() {
     });
 
     setBets([...updated, ...bets.slice(numBets)]);
-    setFixedStakeIndex(fixedIndex);
   };
 
   const activeBets = bets.slice(0, numBets);
@@ -117,14 +129,21 @@ export default function SurebetCalculator() {
   const guaranteedProfit = minReturn - totalInvested;
 
   return (
-    <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4">
-      <div className="w-full max-w-xs md:max-w-full">
+    <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
+      {/* Marca d'água */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] overflow-hidden">
+        <div className="text-7xl font-bold whitespace-nowrap transform rotate-[-20deg] text-white">
+          BET SEM MEDO BET SEM MEDO BET SEM MEDO
+        </div>
+      </div>
+      
+      <div className="w-full max-w-xs md:max-w-full relative z-10">
         <Logo />
       </div>
       
-      <h1 className="text-3xl font-bold mb-8">Bet sem medo</h1>
+      <h1 className="text-3xl font-bold mb-8 relative z-10">Bet sem medo</h1>
 
-      <div className="mb-6">
+      <div className="mb-6 relative z-10">
         <label className="mr-4">Número de Casas:</label>
         <select
           value={numBets}
@@ -138,7 +157,7 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      <div className="flex gap-4 flex-wrap justify-center">
+      <div className="flex gap-4 flex-wrap justify-center relative z-10">
         {activeBets.map((bet, index) => (
           <BettingHouse
             key={index}
@@ -154,11 +173,11 @@ export default function SurebetCalculator() {
       <BettingTable 
         tableData={tableData} 
         minReturn={minReturn}
-        freebetIndexes={freebetIndexes} 
+        freebetIndexes={freebetIndexes}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
-      <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center">
+      <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center relative z-10">
         <p className="mb-2">Nos siga no Instagram e Telegram</p>
         <div className="flex space-x-4">
           <a href="https://t.me/betsemmedofree" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">

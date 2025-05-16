@@ -30,7 +30,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
   );
   
   return (
-    <div className="mt-10 w-full max-w-4xl overflow-x-auto">
+    <div className="mt-10 w-full max-w-4xl overflow-x-auto relative z-10">
       <h2 className="text-xl font-semibold mb-4 text-center">Distribuição das apostas</h2>
       
       {isMobile ? (
