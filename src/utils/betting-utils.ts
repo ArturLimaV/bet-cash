@@ -2,6 +2,9 @@
 import { Bet } from "@/types/betting-types";
 
 export const calculateRealOdd = (bet: Bet): number => {
+  // Se o campo de odd estiver vazio, retornar NaN
+  if (bet.odd === "") return NaN;
+  
   let rawOdd = parseFloat(bet.odd);
   
   // Return NaN for invalid odds to allow proper handling in components

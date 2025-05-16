@@ -42,8 +42,8 @@ export default function SurebetCalculator() {
       setFixedStakeIndex(null);
     } else {
       // Caso contrário, fixar neste índice e distribuir as stakes
-      distributeStakes(fixedIndex);
       setFixedStakeIndex(fixedIndex);
+      distributeStakes(fixedIndex);
     }
   };
 
@@ -51,6 +51,10 @@ export default function SurebetCalculator() {
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
+    
+    // Permitir campo vazio temporariamente - não calcular nada nesse caso
+    if (fixedBet.odd === "") return;
+    
     const fixedOdd = calculateRealOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
     
@@ -65,6 +69,9 @@ export default function SurebetCalculator() {
     const updated = activeBets.map((bet, i) => {
       // Não alterar a stake da aposta fixada
       if (i === fixedIndex) return bet;
+      
+      // Verificar se o campo de odd está vazio e não calcular nada nesse caso
+      if (bet.odd === "") return bet;
 
       const odd = calculateRealOdd(bet);
       // Se o odd não for válido, não tenta calcular (permite edição livre)
@@ -134,6 +141,9 @@ export default function SurebetCalculator() {
   
   // Calculate fixed returns for each bet
   const fixedReturns = activeBets.map((bet, index) => {
+    // Ignorar cálculos para campos de odd vazios
+    if (bet.odd === "") return 0;
+    
     const odd = calculateRealOdd(bet);
     const value = parseFloat(bet.value);
     if (isNaN(odd) || !value) return 0;
@@ -147,11 +157,13 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
-      {/* Marca d'água */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] overflow-hidden">
-        <div className="text-7xl font-bold whitespace-nowrap transform rotate-[-20deg] text-white">
-          BET SEM MEDO BET SEM MEDO BET SEM MEDO
-        </div>
+      {/* Nova marca d'água com a imagem repetida */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{
+        backgroundImage: "url('/lovable-uploads/28bd1147-f993-4695-b904-b131571e6920.png')",
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px auto",
+        opacity: 0.03
+      }}>
       </div>
       
       <div className="w-full max-w-xs md:max-w-full relative z-10">
