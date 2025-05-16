@@ -18,25 +18,32 @@ export function BettingHouse({
   onFixStake,
   isStakeFixed = false
 }: BettingHouseProps) {
-  const rawOdd = parseFloat(data.odd);
-  let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
+  // Calculando a odd real baseada nos valores atuais
+  const calculateDisplayOdd = () => {
+    let rawOdd = parseFloat(data.odd);
+    if (isNaN(rawOdd) || rawOdd <= 0) return "Aguardando...";
+    
+    let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 
-  // Apply commission if present
-  if (data.hasCommission && data.commission !== "") {
-    const commissionValue = parseFloat(data.commission);
-    if (!isNaN(commissionValue)) {
-      baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
+    // Apply commission if present
+    if (data.hasCommission && data.commission !== "") {
+      const commissionValue = parseFloat(data.commission);
+      if (!isNaN(commissionValue)) {
+        baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
+      }
     }
-  }
-  
-  // Apply increase if present
-  const aumentoValue = parseFloat(data.increase);
-  let oddReal = baseOdd;
-  if (!isNaN(aumentoValue) && aumentoValue > 0) {
-    oddReal = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
-  }
+    
+    // Apply increase if present
+    const aumentoValue = parseFloat(data.increase);
+    let oddReal = baseOdd;
+    if (!isNaN(aumentoValue) && aumentoValue > 0) {
+      oddReal = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
+    }
 
-  const realOdd = oddReal.toFixed(3);
+    return oddReal.toFixed(3);
+  };
+
+  const realOdd = calculateDisplayOdd();
 
   return (
     <div className="bg-[#1b2432] text-white p-6 rounded-lg w-full max-w-xs border border-gray-700">
@@ -44,13 +51,14 @@ export function BettingHouse({
 
       <label className="block mb-2">Odd</label>
       <input
-        type="number"
-        step="0.01"
+        type="text"
         className="w-full p-2 rounded bg-[#2c3545] text-white"
         value={data.odd}
         onChange={(e) => onChange(index, { ...data, odd: e.target.value })}
       />
-      <p className="text-yellow-400 text-xs mt-1">Odd real: {realOdd}</p>
+      <p className="text-yellow-400 text-xs mt-1">
+        Odd real: {realOdd}
+      </p>
 
       <label className="block mt-4 mb-2">Aumento (%)</label>
       <input

@@ -3,6 +3,10 @@ import { Bet } from "@/types/betting-types";
 
 export const calculateRealOdd = (bet: Bet): number => {
   let rawOdd = parseFloat(bet.odd);
+  
+  // Return NaN for invalid odds to allow proper handling in components
+  if (isNaN(rawOdd) || rawOdd <= 0) return NaN;
+  
   let baseOdd = bet.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 
   if (bet.hasCommission && bet.commission !== "") {

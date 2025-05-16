@@ -27,9 +27,6 @@ export default function SurebetCalculator() {
     const updated = [...bets];
     updated[index] = updatedBet;
     setBets(updated);
-    
-    // Remover o reset da stake fixa - deixar o usuário controlar manualmente
-    // quando deseja fixar ou desafixar a stake
   };
 
   // Atualização automática quando qualquer aposta mudar
@@ -56,7 +53,10 @@ export default function SurebetCalculator() {
     const fixedBet = activeBets[fixedIndex];
     const fixedOdd = calculateRealOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
-    if (!fixedOdd || !fixedValue || fixedValue < 0) return;
+    
+    // Se não conseguir obter odd válido ou valor fixado, não faz nada
+    // Isso permite que o usuário digite livremente no campo de odd
+    if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
     const fixedReturn = fixedBet.hasFreebet
       ? (fixedOdd - 1) * fixedValue
@@ -67,7 +67,8 @@ export default function SurebetCalculator() {
       if (i === fixedIndex) return bet;
 
       const odd = calculateRealOdd(bet);
-      if (!odd || odd <= 1) return bet;
+      // Se o odd não for válido, não tenta calcular (permite edição livre)
+      if (isNaN(odd) || odd <= 1) return bet;
 
       const newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
@@ -135,7 +136,7 @@ export default function SurebetCalculator() {
   const fixedReturns = activeBets.map((bet, index) => {
     const odd = calculateRealOdd(bet);
     const value = parseFloat(bet.value);
-    if (!odd || !value) return 0;
+    if (isNaN(odd) || !value) return 0;
     
     // Calculate return based on whether it's a freebet or not
     return bet.hasFreebet ? (odd - 1) * value : odd * value;
