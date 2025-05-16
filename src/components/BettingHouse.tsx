@@ -8,6 +8,7 @@ interface BettingHouseProps {
   data: Bet;
   onChange: (index: number, data: Bet) => void;
   onFixStake: (index: number) => void;
+  onUnfixStake?: (index: number) => void; // Add new prop for unfixing stake
   isStakeFixed?: boolean;
 }
 
@@ -16,6 +17,7 @@ export function BettingHouse({
   data, 
   onChange, 
   onFixStake,
+  onUnfixStake,
   isStakeFixed = false
 }: BettingHouseProps) {
   // Calculando a odd real baseada nos valores atuais
@@ -45,6 +47,16 @@ export function BettingHouse({
 
   const realOdd = calculateDisplayOdd();
 
+  const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newOddValue = e.target.value;
+    onChange(index, { ...data, odd: newOddValue });
+    
+    // If the odd field is cleared and this house has fixed stake, unfix it
+    if (newOddValue === "" && isStakeFixed && onUnfixStake) {
+      onUnfixStake(index);
+    }
+  };
+
   return (
     <div className="bg-[#1b2432] text-white p-6 rounded-lg w-full max-w-xs border border-gray-700">
       <div className="text-center text-xl font-bold mb-4">Casa {index + 1}</div>
@@ -54,7 +66,7 @@ export function BettingHouse({
         type="text"
         className="w-full p-2 rounded bg-[#2c3545] text-white"
         value={data.odd}
-        onChange={(e) => onChange(index, { ...data, odd: e.target.value })}
+        onChange={handleOddChange}
       />
       <p className="text-yellow-400 text-xs mt-1">
         Odd real: {realOdd}

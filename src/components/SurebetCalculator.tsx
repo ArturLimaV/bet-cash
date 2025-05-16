@@ -47,6 +47,13 @@ export default function SurebetCalculator() {
     }
   };
 
+  // New function to handle unfixing the stake when odd is cleared
+  const handleUnfixStake = (index: number) => {
+    if (fixedStakeIndex === index) {
+      setFixedStakeIndex(null);
+    }
+  };
+
   // Função separada para distribuir stakes com base na stake fixada
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
@@ -194,6 +201,7 @@ export default function SurebetCalculator() {
             data={bet}
             onChange={handleChange}
             onFixStake={handleFixStake}
+            onUnfixStake={handleUnfixStake}
             isStakeFixed={fixedStakeIndex === index}
           />
         ))}
