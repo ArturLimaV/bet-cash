@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -20,7 +19,8 @@ export default function SurebetCalculator() {
     hasCommission: false,
     commission: "",
     hasFreebet: false,
-    increase: ""
+    increase: "",
+    stake: "" // Initialize the new stake field
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {

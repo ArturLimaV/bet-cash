@@ -1,14 +1,15 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
+import { calculateRealOdd } from "@/utils/betting-utils";
 
 interface BettingHouseProps {
   index: number;
   data: Bet;
   onChange: (index: number, data: Bet) => void;
   onFixStake: (index: number) => void;
-  onUnfixStake?: (index: number) => void; // Add new prop for unfixing stake
+  onUnfixStake?: (index: number) => void;
   isStakeFixed?: boolean;
 }
 
@@ -46,6 +47,32 @@ export function BettingHouse({
   };
 
   const realOdd = calculateDisplayOdd();
+  
+  // Calculate value or stake based on the other field
+  useEffect(() => {
+    if (data.type !== 'Lay') return;
+    
+    const oddValue = parseFloat(data.odd);
+    if (isNaN(oddValue) || oddValue <= 1) return;
+    
+    // Skip calculation if both fields are empty or if no field was edited yet
+    if ((!data.value && !data.stake) || !data.lastEditedField) return;
+    
+    // Calculate based on which field was last edited
+    if (data.lastEditedField === 'value') {
+      const valueNum = parseFloat(data.value);
+      if (!isNaN(valueNum) && valueNum > 0) {
+        const stakeValue = valueNum / (oddValue - 1);
+        onChange(index, { ...data, stake: stakeValue.toFixed(2) });
+      }
+    } else if (data.lastEditedField === 'stake') {
+      const stakeNum = parseFloat(data.stake);
+      if (!isNaN(stakeNum) && stakeNum > 0) {
+        const valueAmount = stakeNum * (oddValue - 1);
+        onChange(index, { ...data, value: valueAmount.toFixed(2) });
+      }
+    }
+  }, [data.value, data.stake, data.odd, data.type, data.lastEditedField]);
 
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOddValue = e.target.value;
@@ -55,6 +82,22 @@ export function BettingHouse({
     if (newOddValue === "" && isStakeFixed && onUnfixStake) {
       onUnfixStake(index);
     }
+  };
+  
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(index, { 
+      ...data, 
+      value: e.target.value,
+      lastEditedField: 'value'
+    });
+  };
+  
+  const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(index, {
+      ...data,
+      stake: e.target.value,
+      lastEditedField: 'stake'
+    });
   };
 
   return (
@@ -98,8 +141,22 @@ export function BettingHouse({
         step="0.01"
         className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
         value={data.value}
-        onChange={(e) => onChange(index, { ...data, value: e.target.value })}
+        onChange={handleValueChange}
       />
+      
+      {/* Exibe o campo Stake somente quando o tipo for Lay */}
+      {data.type === "Lay" && (
+        <>
+          <label className="block mb-2">Stake</label>
+          <input
+            type="number"
+            step="0.01"
+            className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
+            value={data.stake || ""}
+            onChange={handleStakeChange}
+          />
+        </>
+      )}
 
       <div className="mb-2">
         <label className="flex items-center">

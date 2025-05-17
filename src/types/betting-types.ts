@@ -7,6 +7,8 @@ export interface Bet {
   commission: string;
   hasFreebet: boolean;
   increase: string; // Changed from stakeIncrease to increase
+  stake: string; // Added stake field for Lay bets
+  lastEditedField?: 'value' | 'stake'; // Track which field was last edited
 }
 
 export interface TableRowData {
