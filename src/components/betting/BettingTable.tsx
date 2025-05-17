@@ -29,6 +29,21 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
     </Badge>
   );
   
+  // Helper function to format the bet value display based on bet type
+  const formatBetValue = (data: TableRowData) => {
+    // Check if the row has layStake property and it's a valid number
+    if (data.betType === 'Lay' && data.layStake !== undefined) {
+      return (
+        <>
+          R$ {data.value.toFixed(2)} Lay (Stake: R$ {data.layStake.toFixed(2)})
+        </>
+      );
+    }
+    
+    // Default display for Back bets or when no stake is available
+    return `R$ ${data.value.toFixed(2)}`;
+  };
+  
   return (
     <div className="mt-10 w-full max-w-4xl overflow-x-auto relative z-10">
       <h2 className="text-xl font-semibold mb-4 text-center">Distribuição das apostas</h2>
@@ -46,7 +61,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 </div>
                 
                 <div className="font-medium">Valor:</div>
-                <div>R$ {data.value.toFixed(2)}</div>
+                <div>{formatBetValue(data)}</div>
                 
                 <div className="font-medium">% da Aposta:</div>
                 <div>{data.percentage}%</div>
@@ -83,7 +98,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                     {freebetIndexes.includes(data.index) && <FreebetIndicator />}
                   </div>
                 </TableCell>
-                <TableCell className="px-4 py-2">R$ {data.value.toFixed(2)}</TableCell>
+                <TableCell className="px-4 py-2">{formatBetValue(data)}</TableCell>
                 <TableCell className="px-4 py-2">{data.percentage}%</TableCell>
                 <TableCell className={`px-4 py-2 font-semibold ${data.lucroClass}`}>
                   R$ {data.lucro.toFixed(2)}

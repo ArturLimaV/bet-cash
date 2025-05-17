@@ -136,13 +136,18 @@ export default function SurebetCalculator() {
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
+    // Add bet type and lay stake information for Lay bets
+    const layStake = bet.type === "Lay" ? parseFloat(bet.stake) || 0 : undefined;
+    
     return {
       index,
       value,
       percentage,
       retorno,
       lucro,
-      lucroClass
+      lucroClass,
+      betType: bet.type, // Pass the bet type
+      layStake // Pass the lay stake value if applicable
     };
   });
   
