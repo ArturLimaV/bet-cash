@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -84,23 +85,33 @@ export default function SurebetCalculator() {
       // Se o odd não for válido, não tenta calcular (permite edição livre)
       if (isNaN(odd) || odd <= 1) return bet;
 
-      const newValue = bet.hasFreebet
+      let newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
-
-      return {
+      
+      let newBet = {
         ...bet,
         value: newValue.toFixed(2)
       };
+      
+      // Calcular stake para apostas Lay
+      if (bet.type === "Lay" && odd > 1) {
+        const layStake = newValue / (odd - 1);
+        newBet.stake = layStake.toFixed(2);
+      }
+
+      return newBet;
     });
 
-    // Atualizar apenas os valores das stakes, preservando todos os outros campos
+    // Atualizar os valores das stakes, preservando todos os outros campos
     const newBets = [...bets];
     updated.forEach((bet, i) => {
       if (i !== fixedIndex) {
         newBets[i] = {
           ...newBets[i],
-          value: bet.value
+          value: bet.value,
+          // Também atualizar a stake para apostas Lay
+          ...(bet.type === "Lay" ? { stake: bet.stake } : {})
         };
       }
     });
