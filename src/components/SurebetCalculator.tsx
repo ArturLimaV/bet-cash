@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -90,23 +90,23 @@ export default function SurebetCalculator() {
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
       
-      // Preparar o objeto de bet atualizado
-      let newBet = {
-        ...bet,
-        value: newValue.toFixed(2)
-      };
+      let newStake;
       
-      // Atualizar a stake baseada no tipo de aposta
-      if (bet.type === "Lay" && odd > 1) {
-        // A stake em apostas Lay é calculada como: valor / (odd - 1)
-        const layStake = newValue / (odd - 1);
-        newBet.stake = layStake.toFixed(2);
+      // Calcular stake baseado no tipo de aposta
+      if (bet.type === "Lay") {
+        // Corrige o cálculo da stake para apostas Lay: valor / (odd - 1)
+        newStake = newValue / (odd - 1);
       } else {
         // Para apostas Back, a stake é igual ao valor
-        newBet.stake = newValue.toFixed(2);
+        newStake = newValue;
       }
-
-      return newBet;
+      
+      // Preparar o objeto de bet atualizado
+      return {
+        ...bet,
+        value: newValue.toFixed(2),
+        stake: newStake.toFixed(2)
+      };
     });
 
     // Atualizar os valores das stakes, preservando todos os outros campos
