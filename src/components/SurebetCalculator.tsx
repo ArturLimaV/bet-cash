@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -90,21 +89,18 @@ export default function SurebetCalculator() {
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
       
-      let newStake;
-      
-      // Calcular stake baseado no tipo de aposta
-      if (bet.type === "Lay") {
-        // Corrige o cálculo da stake para apostas Lay: valor / (odd - 1)
-        newStake = newValue / (odd - 1);
-      } else {
-        // Para apostas Back, a stake é igual ao valor
-        newStake = newValue;
-      }
-      
-      // Preparar o objeto de bet atualizado
-      return {
+      // Criar um novo objeto bet com o novo valor
+      const newBet = {
         ...bet,
-        value: newValue.toFixed(2),
+        value: newValue.toFixed(2)
+      };
+      
+      // Calcular a stake com base no tipo usando a utility function
+      // Isso garante que para Lay bets, sempre será valor / (odd - 1)
+      const newStake = calculateStake(newBet);
+      
+      return {
+        ...newBet,
         stake: newStake.toFixed(2)
       };
     });
@@ -116,7 +112,7 @@ export default function SurebetCalculator() {
         newBets[i] = {
           ...newBets[i],
           value: bet.value,
-          stake: bet.stake // Sempre atualizar a stake, independentemente do tipo
+          stake: bet.stake
         };
       }
     });
