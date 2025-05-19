@@ -1,4 +1,3 @@
-
 import { Bet } from "@/types/betting-types";
 
 export const calculateRealOdd = (bet: Bet): number => {
@@ -26,4 +25,22 @@ export const calculateRealOdd = (bet: Bet): number => {
   }
 
   return baseOdd;
+};
+
+// Add a helper function to calculate stake based on bet type
+export const calculateStake = (bet: Bet): number => {
+  if (!bet.value || bet.value === "") return 0;
+  
+  const value = parseFloat(bet.value);
+  if (isNaN(value)) return 0;
+  
+  // For Lay bets, calculate stake as value / (odd - 1)
+  if (bet.type === "Lay") {
+    const odd = calculateRealOdd(bet);
+    if (odd <= 1) return 0;
+    return value / (odd - 1);
+  }
+  
+  // For all other bet types (Back, etc.), stake = value
+  return value;
 };

@@ -96,11 +96,14 @@ export default function SurebetCalculator() {
         value: newValue.toFixed(2)
       };
       
-      // Corrigindo o cálculo da stake para apostas Lay
+      // Atualizar a stake baseada no tipo de aposta
       if (bet.type === "Lay" && odd > 1) {
         // A stake em apostas Lay é calculada como: valor / (odd - 1)
         const layStake = newValue / (odd - 1);
         newBet.stake = layStake.toFixed(2);
+      } else {
+        // Para apostas Back, a stake é igual ao valor
+        newBet.stake = newValue.toFixed(2);
       }
 
       return newBet;
@@ -113,8 +116,7 @@ export default function SurebetCalculator() {
         newBets[i] = {
           ...newBets[i],
           value: bet.value,
-          // Também atualizar a stake para apostas Lay
-          ...(bet.type === "Lay" ? { stake: bet.stake } : {})
+          stake: bet.stake // Sempre atualizar a stake, independentemente do tipo
         };
       }
     });
@@ -160,6 +162,9 @@ export default function SurebetCalculator() {
         // Calcular stake como: valor / (odd - 1)
         layStake = value / (odd - 1);
       }
+    } else {
+      // Para apostas Back, a stake é igual ao valor
+      layStake = value;
     }
     
     return {

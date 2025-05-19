@@ -50,7 +50,14 @@ export function BettingHouse({
   
   // Calculate value or stake based on the other field
   useEffect(() => {
-    if (data.type !== 'Lay') return;
+    // Skip if not Lay or if odd is invalid
+    if (data.type !== 'Lay') {
+      // For Back bets, stake = value
+      if (data.stake !== data.value) {
+        onChange(index, { ...data, stake: data.value });
+      }
+      return;
+    }
     
     const oddValue = parseFloat(data.odd);
     if (isNaN(oddValue) || oddValue <= 1) return;
@@ -62,12 +69,14 @@ export function BettingHouse({
     if (data.lastEditedField === 'value') {
       const valueNum = parseFloat(data.value);
       if (!isNaN(valueNum) && valueNum > 0) {
+        // For Lay, stake = value / (odd - 1)
         const stakeValue = valueNum / (oddValue - 1);
         onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
     } else if (data.lastEditedField === 'stake') {
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
+        // For Lay, value = stake * (odd - 1)
         const valueAmount = stakeNum * (oddValue - 1);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
