@@ -194,11 +194,7 @@ export function BettingHouse({
       </div>
 
       <button
-        className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${
-          isStakeFixed 
-            ? "bg-betting-green text-white" 
-            : "bg-gray-600 text-white"
-        }`}
+        className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${isStakeFixed ? "bg-betting-green text-white" : "bg-gray-600 text-white"}`}
         onClick={() => onFixStake(index)}
         disabled={!(parseFloat(data.value) > 0)}
       >
