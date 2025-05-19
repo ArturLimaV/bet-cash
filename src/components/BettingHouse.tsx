@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
@@ -52,9 +51,6 @@ export function BettingHouse({
   useEffect(() => {
     if (data.type !== 'Lay') return;
     
-    const oddValue = parseFloat(data.odd);
-    if (isNaN(oddValue) || oddValue <= 1) return;
-    
     const realOddValue = parseFloat(realOdd);
     if (isNaN(realOddValue) || realOddValue <= 1) return;
     
@@ -65,19 +61,19 @@ export function BettingHouse({
     if (data.lastEditedField === 'value') {
       const valueNum = parseFloat(data.value);
       if (!isNaN(valueNum) && valueNum > 0) {
-        // Use the correct formula: stake = value / (odd - 1)
+        // Calculate stake based on value
         const stakeValue = calculateStake(valueNum, realOddValue);
         onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
     } else if (data.lastEditedField === 'stake') {
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
-        // Use the correct formula: value = stake * (odd - 1)
+        // Calculate value based on stake
         const valueAmount = calculateValueFromStake(stakeNum, realOddValue);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
     }
-  }, [data.value, data.stake, data.odd, realOdd, data.type, data.lastEditedField]);
+  }, [data.value, data.stake, data.odd, realOdd, data.type, data.lastEditedField, data.increase, data.commission, data.hasCommission]);
 
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOddValue = e.target.value;
