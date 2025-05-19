@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -6,7 +7,7 @@ import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -162,6 +163,21 @@ export default function SurebetCalculator() {
   const minReturn = Math.min(...fixedReturns);
   const guaranteedProfit = minReturn - totalInvested;
 
+  // Extract betTypes for the BettingTable
+  const betTypes = activeBets.map(bet => bet.type);
+
+  // Calculate layStakes for Lay bets
+  const layStakes: Record<number, number> = {};
+  activeBets.forEach((bet, index) => {
+    if (bet.type === "Lay") {
+      const odd = calculateRealOdd(bet);
+      const value = parseFloat(bet.value) || 0;
+      if (!isNaN(odd) && odd > 1) {
+        layStakes[index] = calculateStake(value, odd);
+      }
+    }
+  });
+
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
       {/* Nova marca d'água com a imagem repetida */}
@@ -211,6 +227,8 @@ export default function SurebetCalculator() {
         tableData={tableData} 
         minReturn={minReturn}
         freebetIndexes={freebetIndexes}
+        betTypes={betTypes}
+        layStakes={layStakes}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
@@ -228,3 +246,4 @@ export default function SurebetCalculator() {
     </div>
   );
 }
+
