@@ -57,7 +57,7 @@ export function BettingHouse({
     // Skip calculation if both fields are empty or if no field was edited yet
     if ((!data.value && !data.stake) || !data.lastEditedField) return;
     
-    // Calculate based on which field was last edited
+    // If 'value' is edited, calculate stake
     if (data.lastEditedField === 'value') {
       const valueNum = parseFloat(data.value);
       if (!isNaN(valueNum) && valueNum > 0) {
@@ -65,7 +65,9 @@ export function BettingHouse({
         const stakeValue = calculateStake(valueNum, realOddValue);
         onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
-    } else if (data.lastEditedField === 'stake') {
+    } 
+    // If 'stake' is edited, calculate value
+    else if (data.lastEditedField === 'stake') {
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
         // Calculate value based on stake
@@ -86,17 +88,19 @@ export function BettingHouse({
   };
   
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     onChange(index, { 
       ...data, 
-      value: e.target.value,
+      value: value,
       lastEditedField: 'value'
     });
   };
   
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const stake = e.target.value;
     onChange(index, {
       ...data,
-      stake: e.target.value,
+      stake: stake,
       lastEditedField: 'stake'
     });
   };
