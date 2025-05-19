@@ -54,19 +54,19 @@ export default function SurebetCalculator() {
     }
   };
 
-  // Função separada para distribuir stakes com base na stake fixada
+  // Function to distribute stakes based on the fixed stake
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
     
-    // Permitir campo vazio temporariamente - não calcular nada nesse caso
+    // Allow empty field temporarily - don't calculate anything in this case
     if (fixedBet.odd === "") return;
     
     const fixedOdd = calculateRealOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
     
-    // Se não conseguir obter odd válido ou valor fixado, não faz nada
-    // Isso permite que o usuário digite livremente no campo de odd
+    // If unable to get valid odd or fixed value, do nothing
+    // This allows the user to freely type in the odd field
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
     const fixedReturn = fixedBet.hasFreebet
@@ -74,29 +74,28 @@ export default function SurebetCalculator() {
       : fixedOdd * fixedValue;
 
     const updated = activeBets.map((bet, i) => {
-      // Não alterar a stake da aposta fixada
+      // Don't change the fixed bet's stake
       if (i === fixedIndex) return bet;
       
-      // Verificar se o campo de odd está vazio e não calcular nada nesse caso
+      // Check if the odd field is empty and don't calculate anything in that case
       if (bet.odd === "") return bet;
 
       const odd = calculateRealOdd(bet);
-      // Se o odd não for válido, não tenta calcular (permite edição livre)
+      // If the odd is not valid, don't try to calculate (allows free editing)
       if (isNaN(odd) || odd <= 1) return bet;
 
-      // Calcular o value (responsabilidade) corretamente
+      // Calculate the value correctly
       let newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
       
-      // Criar um novo objeto bet com o novo valor
+      // Create a new bet object with the updated value
       const newBet = {
         ...bet,
         value: newValue.toFixed(2)
       };
       
-      // Calcular a stake com base no tipo usando a utility function
-      // Isso garante que para Lay bets, sempre será valor / (odd - 1)
+      // Calculate the stake correctly using our utility function
       const newStake = calculateStake(newBet);
       
       return {
@@ -105,7 +104,7 @@ export default function SurebetCalculator() {
       };
     });
 
-    // Atualizar os valores das stakes, preservando todos os outros campos
+    // Update the values of the stakes, preserving all other fields
     const newBets = [...bets];
     updated.forEach((bet, i) => {
       if (i !== fixedIndex) {
@@ -148,7 +147,7 @@ export default function SurebetCalculator() {
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
-    // Para apostas Lay, asseguramos que a stake seja calculada corretamente caso não exista
+    // For apostas Lay, asseguramos que a stake seja calculada corretamente caso não exista
     let layStake = undefined;
     if (bet.type === "Lay") {
       // Se a stake já estiver definida, use-a; caso contrário, calcule
@@ -177,7 +176,7 @@ export default function SurebetCalculator() {
   
   // Calculate fixed returns for each bet
   const fixedReturns = activeBets.map((bet, index) => {
-    // Ignorar cálculos para campos de odd vazios
+    // Ignore calculations for empty odd fields
     if (bet.odd === "") return 0;
     
     const odd = calculateRealOdd(bet);

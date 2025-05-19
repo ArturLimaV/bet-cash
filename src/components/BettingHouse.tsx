@@ -58,17 +58,16 @@ export function BettingHouse({
     
     // Calculate based on which field was last edited
     if (data.lastEditedField === 'value') {
-      // Quando o valor for alterado, sempre atualiza a stake
-      // Usando a utility function para garantir que o cálculo está correto
+      // When value is changed, always update the stake based on the type
       const stakeValue = calculateStake(data);
       if (stakeValue > 0) {
         onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
     } else if (data.lastEditedField === 'stake' && data.type === 'Lay') {
-      // Se stake for editada e for uma aposta Lay, calcular o valor (responsabilidade)
+      // If stake was edited and it's a Lay bet, calculate the value (liability)
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
-        // Para Lay, value = stake * (odd - 1)
+        // For Lay, value = stake * (odd - 1)
         const valueAmount = stakeNum * (oddValue - 1);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
