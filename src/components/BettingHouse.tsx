@@ -21,6 +21,16 @@ export function BettingHouse({
   onUnfixStake,
   isStakeFixed = false
 }: BettingHouseProps) {
+  // Track if values have been changed since fixing
+  const [valuesChangedSinceFixing, setValuesChangedSinceFixing] = useState(false);
+  
+  // Reset the tracking state when the bet is fixed or unfixed
+  useEffect(() => {
+    if (isStakeFixed) {
+      setValuesChangedSinceFixing(false);
+    }
+  }, [isStakeFixed]);
+  
   // Calculando a odd real baseada nos valores atuais
   const calculateDisplayOdd = () => {
     let rawOdd = parseFloat(data.odd);
@@ -48,14 +58,14 @@ export function BettingHouse({
 
   const realOdd = calculateDisplayOdd();
   
-  // Automatically unfix stake when any value changes for Lay bets
+  // Modified auto-unfixing logic - only unfix when values change after the bet has been fixed
   useEffect(() => {
-    // Only apply auto-unfixing for Lay bets that are fixed
-    if (data.type === 'Lay' && isStakeFixed && onUnfixStake) {
-      // Desfixar automaticamente quando qualquer valor relevante mudar
+    // Only apply when already fixed and values have changed since fixing
+    if (data.type === 'Lay' && isStakeFixed && valuesChangedSinceFixing && onUnfixStake) {
       onUnfixStake(index);
+      setValuesChangedSinceFixing(false); // Reset after unfixing
     }
-  }, [data.odd, data.value, data.stake, data.type, isStakeFixed]);
+  }, [data.odd, data.value, data.stake, data.type, isStakeFixed, valuesChangedSinceFixing]);
   
   // Calculate stake or value based on changes to the other field
   useEffect(() => {
@@ -94,17 +104,18 @@ export function BettingHouse({
     }
   }, [data.value, data.stake, data.odd, data.type, data.lastEditedField]);
 
+  // Handlers that track changes after fixing
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newOddValue = e.target.value;
-    onChange(index, { ...data, odd: newOddValue });
-    
-    // If the odd field is cleared and this house has fixed stake, unfix it
-    if (newOddValue === "" && isStakeFixed && onUnfixStake) {
-      onUnfixStake(index);
+    if (isStakeFixed) {
+      setValuesChangedSinceFixing(true);
     }
+    onChange(index, { ...data, odd: e.target.value });
   };
   
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isStakeFixed) {
+      setValuesChangedSinceFixing(true);
+    }
     onChange(index, { 
       ...data, 
       value: e.target.value,
@@ -113,6 +124,9 @@ export function BettingHouse({
   };
   
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isStakeFixed) {
+      setValuesChangedSinceFixing(true);
+    }
     onChange(index, {
       ...data,
       stake: e.target.value,
@@ -142,14 +156,24 @@ export function BettingHouse({
         className="w-full p-2 rounded bg-[#2c3545] text-white"
         placeholder="Digite o aumento %"
         value={data.increase || ""}
-        onChange={(e) => onChange(index, { ...data, increase: e.target.value })}
+        onChange={(e) => {
+          if (isStakeFixed) {
+            setValuesChangedSinceFixing(true);
+          }
+          onChange(index, { ...data, increase: e.target.value });
+        }}
       />
 
       <label className="block mt-4 mb-2">Tipo</label>
       <select
         className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
         value={data.type}
-        onChange={(e) => onChange(index, { ...data, type: e.target.value })}
+        onChange={(e) => {
+          if (isStakeFixed) {
+            setValuesChangedSinceFixing(true);
+          }
+          onChange(index, { ...data, type: e.target.value });
+        }}
       >
         <option value="Back">Back</option>
         <option value="Lay">Lay</option>
@@ -164,7 +188,6 @@ export function BettingHouse({
         onChange={handleValueChange}
       />
       
-      {/* Exibe o campo Stake somente quando o tipo for Lay */}
       {data.type === "Lay" && (
         <>
           <label className="block mb-2">Stake</label>
@@ -184,7 +207,12 @@ export function BettingHouse({
             type="checkbox"
             className="mr-2"
             checked={data.hasCommission}
-            onChange={(e) => onChange(index, { ...data, hasCommission: e.target.checked })}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, hasCommission: e.target.checked });
+            }}
           />
           Comissão
         </label>
@@ -195,7 +223,12 @@ export function BettingHouse({
             placeholder="%"
             className="w-full mt-1 p-2 rounded bg-[#2c3545] text-white text-sm"
             value={data.commission || ""}
-            onChange={(e) => onChange(index, { ...data, commission: e.target.value })}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, commission: e.target.value });
+            }}
           />
         )}
       </div>
@@ -206,7 +239,12 @@ export function BettingHouse({
             type="checkbox"
             className="mr-2"
             checked={data.hasFreebet}
-            onChange={(e) => onChange(index, { ...data, hasFreebet: e.target.checked })}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, hasFreebet: e.target.checked });
+            }}
           />
           Freebet
         </label>
