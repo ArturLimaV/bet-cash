@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
-import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
+import { calculateRealOdd } from "@/utils/betting-utils";
 
 interface BettingHouseProps {
   index: number;
@@ -49,7 +50,8 @@ export function BettingHouse({
   
   // Calculate value or stake based on the other field
   useEffect(() => {
-    // Skip if odd is invalid
+    if (data.type !== 'Lay') return;
+    
     const oddValue = parseFloat(data.odd);
     if (isNaN(oddValue) || oddValue <= 1) return;
     
@@ -58,23 +60,14 @@ export function BettingHouse({
     
     // Calculate based on which field was last edited
     if (data.lastEditedField === 'value') {
-      // When value is changed, always update the stake based on the type
-      if (data.type === 'Lay') {
-        // For Lay bets, stake = value / (odd - 1)
-        const valueNum = parseFloat(data.value);
-        if (!isNaN(valueNum) && valueNum > 0) {
-          const stakeAmount = valueNum / (oddValue - 1);
-          onChange(index, { ...data, stake: stakeAmount.toFixed(2) });
-        }
-      } else {
-        // For Back bets, stake = value
-        onChange(index, { ...data, stake: data.value });
+      const valueNum = parseFloat(data.value);
+      if (!isNaN(valueNum) && valueNum > 0) {
+        const stakeValue = valueNum / (oddValue - 1);
+        onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
-    } else if (data.lastEditedField === 'stake' && data.type === 'Lay') {
-      // If stake was edited and it's a Lay bet, calculate the value (liability)
+    } else if (data.lastEditedField === 'stake') {
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
-        // For Lay, value = stake * (odd - 1)
         const valueAmount = stakeNum * (oddValue - 1);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }

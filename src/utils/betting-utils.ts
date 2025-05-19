@@ -27,23 +27,3 @@ export const calculateRealOdd = (bet: Bet): number => {
 
   return baseOdd;
 };
-
-// Helper function to calculate stake based on bet type
-export const calculateStake = (bet: Bet): number => {
-  // If there's no value or it's empty, return 0
-  if (!bet.value || bet.value === "") return 0;
-  
-  const value = parseFloat(bet.value);
-  if (isNaN(value)) return 0;
-  
-  // For Lay bets, stake is always calculated as value / (odd - 1)
-  if (bet.type === "Lay") {
-    const rawOdd = parseFloat(bet.odd);
-    if (isNaN(rawOdd) || rawOdd <= 1) return 0;
-    
-    return value / (rawOdd - 1);
-  }
-  
-  // For Back bets and other types, stake = value
-  return value;
-};
