@@ -48,6 +48,15 @@ export function BettingHouse({
 
   const realOdd = calculateDisplayOdd();
   
+  // Automatically unfix stake when any value changes for Lay bets
+  useEffect(() => {
+    // Only apply auto-unfixing for Lay bets that are fixed
+    if (data.type === 'Lay' && isStakeFixed && onUnfixStake) {
+      // Desfixar automaticamente quando qualquer valor relevante mudar
+      onUnfixStake(index);
+    }
+  }, [data.odd, data.value, data.stake, data.type, isStakeFixed]);
+  
   // Calculate stake or value based on changes to the other field
   useEffect(() => {
     // Skip if odd is invalid
