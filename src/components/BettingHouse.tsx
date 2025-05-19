@@ -46,17 +46,27 @@ export function BettingHouse({
   };
 
   const realOdd = calculateDisplayOdd();
-  
+
+  // Função para calcular o valor com base no stake
+  const calculateValue = (stake: number, odd: number) => {
+    return stake * (odd - 1);
+  };
+
+  // Função para calcular o stake com base no valor
+  const calculateStake = (value: number, odd: number) => {
+    return value / (odd - 1);
+  };
+
   // Calculate value or stake based on the other field for Lay bets
   useEffect(() => {
     if (data.type !== 'Lay') return;
-    
+
     const realOddValue = parseFloat(realOdd);
     if (isNaN(realOddValue) || realOddValue <= 1) return;
-    
+
     // Skip calculation if both fields are empty or if no field was edited yet
     if ((!data.value && !data.stake) || !data.lastEditedField) return;
-    
+
     // If 'value' is edited, calculate stake
     if (data.lastEditedField === 'value') {
       const valueNum = parseFloat(data.value);
@@ -71,7 +81,7 @@ export function BettingHouse({
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
         // Calculate value based on stake
-        const valueAmount = calculateValueFromStake(stakeNum, realOddValue);
+        const valueAmount = calculateValue(stakeNum, realOddValue);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
     }
@@ -80,13 +90,13 @@ export function BettingHouse({
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOddValue = e.target.value;
     onChange(index, { ...data, odd: newOddValue });
-    
+
     // If the odd field is cleared and this house has fixed stake, unfix it
     if (newOddValue === "" && isStakeFixed && onUnfixStake) {
       onUnfixStake(index);
     }
   };
-  
+
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     onChange(index, { 
@@ -95,7 +105,7 @@ export function BettingHouse({
       lastEditedField: 'value'
     });
   };
-  
+
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const stake = e.target.value;
     onChange(index, {
