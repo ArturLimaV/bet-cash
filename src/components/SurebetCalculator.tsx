@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -88,6 +89,9 @@ export default function SurebetCalculator() {
       let newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
+
+      // Round to 2 decimal places for consistent display
+      newValue = parseFloat(newValue.toFixed(2));
       
       // Create a new bet object with the updated value
       const newBet = {
@@ -95,8 +99,18 @@ export default function SurebetCalculator() {
         value: newValue.toFixed(2)
       };
       
-      // Calculate the stake correctly using our utility function
-      const newStake = calculateStake(newBet);
+      // Calculate the stake correctly - for lay bets, this is ALWAYS value / (odd - 1)
+      let newStake;
+      if (bet.type === "Lay") {
+        const rawOdd = parseFloat(bet.odd);
+        if (!isNaN(rawOdd) && rawOdd > 1) {
+          newStake = newValue / (rawOdd - 1);
+        } else {
+          newStake = 0;
+        }
+      } else {
+        newStake = newValue;
+      }
       
       return {
         ...newBet,
