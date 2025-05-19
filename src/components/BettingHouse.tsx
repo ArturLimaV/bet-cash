@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
-import { calculateRealOdd } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake, calculateValueFromStake } from "@/utils/betting-utils";
 
 interface BettingHouseProps {
   index: number;
@@ -48,12 +48,15 @@ export function BettingHouse({
 
   const realOdd = calculateDisplayOdd();
   
-  // Calculate value or stake based on the other field
+  // Calculate value or stake based on the other field for Lay bets
   useEffect(() => {
     if (data.type !== 'Lay') return;
     
     const oddValue = parseFloat(data.odd);
     if (isNaN(oddValue) || oddValue <= 1) return;
+    
+    const realOddValue = parseFloat(realOdd);
+    if (isNaN(realOddValue) || realOddValue <= 1) return;
     
     // Skip calculation if both fields are empty or if no field was edited yet
     if ((!data.value && !data.stake) || !data.lastEditedField) return;
@@ -62,17 +65,19 @@ export function BettingHouse({
     if (data.lastEditedField === 'value') {
       const valueNum = parseFloat(data.value);
       if (!isNaN(valueNum) && valueNum > 0) {
-        const stakeValue = valueNum / (oddValue - 1);
+        // Use the correct formula: stake = value / (odd - 1)
+        const stakeValue = calculateStake(valueNum, realOddValue);
         onChange(index, { ...data, stake: stakeValue.toFixed(2) });
       }
     } else if (data.lastEditedField === 'stake') {
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
-        const valueAmount = stakeNum * (oddValue - 1);
+        // Use the correct formula: value = stake * (odd - 1)
+        const valueAmount = calculateValueFromStake(stakeNum, realOddValue);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
     }
-  }, [data.value, data.stake, data.odd, data.type, data.lastEditedField]);
+  }, [data.value, data.stake, data.odd, realOdd, data.type, data.lastEditedField]);
 
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOddValue = e.target.value;

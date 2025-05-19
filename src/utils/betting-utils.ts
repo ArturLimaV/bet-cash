@@ -27,3 +27,17 @@ export const calculateRealOdd = (bet: Bet): number => {
 
   return baseOdd;
 };
+
+// Calculate stake for a Lay bet - using the formula stake = value / (odd - 1)
+export const calculateStake = (value: number, odd: number): number => {
+  if (odd <= 1 || isNaN(odd) || isNaN(value)) return 0;
+  
+  return value / (odd - 1);
+};
+
+// Calculate value from stake for Lay bets - using formula value = stake * (odd - 1)
+export const calculateValueFromStake = (stake: number, odd: number): number => {
+  if (odd <= 1 || isNaN(odd) || isNaN(stake)) return 0;
+  
+  return stake * (odd - 1);
+};
