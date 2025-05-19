@@ -17,17 +17,9 @@ interface BettingTableProps {
   tableData: TableRowData[];
   minReturn: number;
   freebetIndexes: number[];
-  betTypes: string[]; // Add betTypes to know which ones are Lay
-  layStakes: Record<number, number>; // Add layStakes to display for Lay bets
 }
 
-export const BettingTable: React.FC<BettingTableProps> = ({ 
-  tableData, 
-  minReturn, 
-  freebetIndexes = [],
-  betTypes = [],
-  layStakes = {}
-}) => {
+export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn, freebetIndexes = [] }) => {
   const isMobile = useIsMobile();
   
   const FreebetIndicator = () => (
@@ -37,19 +29,19 @@ export const BettingTable: React.FC<BettingTableProps> = ({
     </Badge>
   );
   
-  // Format value display based on bet type
-  const formatValueDisplay = (index: number, value: number, percentage: string) => {
-    const isLay = betTypes[index] === "Lay";
-    
-    if (isLay && layStakes[index] !== undefined) {
+  // Helper function to format the bet value display based on bet type
+  const formatBetValue = (data: TableRowData) => {
+    // Check if the row has layStake property and it's a valid number
+    if (data.betType === 'Lay' && data.layStake !== undefined) {
       return (
         <>
-          R$ {value.toFixed(2)} Lay (Stake: R$ {layStakes[index].toFixed(2)}) ({percentage}%)
+          R$ {data.value.toFixed(2)} Lay (Stake: R$ {data.layStake.toFixed(2)})
         </>
       );
     }
     
-    return `R$ ${value.toFixed(2)} (${percentage}%)`;
+    // Default display for Back bets or when no stake is available
+    return `R$ ${data.value.toFixed(2)}`;
   };
   
   return (
@@ -69,7 +61,10 @@ export const BettingTable: React.FC<BettingTableProps> = ({
                 </div>
                 
                 <div className="font-medium">Valor:</div>
-                <div>{formatValueDisplay(data.index, data.value, data.percentage)}</div>
+                <div>{formatBetValue(data)}</div>
+                
+                <div className="font-medium">% da Aposta:</div>
+                <div>{data.percentage}%</div>
                 
                 <div className="font-medium">Lucro:</div>
                 <div className={`font-semibold ${data.lucroClass}`}>
@@ -89,6 +84,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({
             <TableRow className="bg-[#1b2432]">
               <TableHead className="px-4 py-2">Casa</TableHead>
               <TableHead className="px-4 py-2">Valor</TableHead>
+              <TableHead className="px-4 py-2">% da Aposta</TableHead>
               <TableHead className="px-4 py-2">Lucro</TableHead>
               <TableHead className="px-4 py-2">Retorno</TableHead>
             </TableRow>
@@ -102,9 +98,8 @@ export const BettingTable: React.FC<BettingTableProps> = ({
                     {freebetIndexes.includes(data.index) && <FreebetIndicator />}
                   </div>
                 </TableCell>
-                <TableCell className="px-4 py-2">
-                  {formatValueDisplay(data.index, data.value, data.percentage)}
-                </TableCell>
+                <TableCell className="px-4 py-2">{formatBetValue(data)}</TableCell>
+                <TableCell className="px-4 py-2">{data.percentage}%</TableCell>
                 <TableCell className={`px-4 py-2 font-semibold ${data.lucroClass}`}>
                   R$ {data.lucro.toFixed(2)}
                 </TableCell>

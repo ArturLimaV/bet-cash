@@ -18,4 +18,6 @@ export interface TableRowData {
   retorno: number;
   lucro: number;
   lucroClass: string;
+  betType?: string; // Add bet type information
+  layStake?: number; // Add lay stake value if applicable
 }

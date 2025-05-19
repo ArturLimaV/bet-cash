@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
-import { calculateRealOdd, calculateStake, calculateValueFromStake } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
 
 interface BettingHouseProps {
   index: number;
@@ -46,71 +46,63 @@ export function BettingHouse({
   };
 
   const realOdd = calculateDisplayOdd();
-
-  // Função para calcular o valor com base no stake
-  const calculateValue = (stake: number, odd: number) => {
-    return stake * (odd - 1);
-  };
-
-  // Função para calcular o stake com base no valor
-  const calculateStake = (value: number, odd: number) => {
-    return value / (odd - 1);
-  };
-
-  // Calculate value or stake based on the other field for Lay bets
+  
+  // Calculate value or stake based on the other field
   useEffect(() => {
-    if (data.type !== 'Lay') return;
-
-    const realOddValue = parseFloat(realOdd);
-    if (isNaN(realOddValue) || realOddValue <= 1) return;
-
+    // Skip if odd is invalid
+    const oddValue = parseFloat(data.odd);
+    if (isNaN(oddValue) || oddValue <= 1) return;
+    
     // Skip calculation if both fields are empty or if no field was edited yet
     if ((!data.value && !data.stake) || !data.lastEditedField) return;
-
-    // If 'value' is edited, calculate stake
+    
+    // Calculate based on which field was last edited
     if (data.lastEditedField === 'value') {
-      const valueNum = parseFloat(data.value);
-      if (!isNaN(valueNum) && valueNum > 0) {
-        // Calculate stake based on value
-        const stakeValue = calculateStake(valueNum, realOddValue);
-        onChange(index, { ...data, stake: stakeValue.toFixed(2) });
+      // When value is changed, always update the stake based on the type
+      if (data.type === 'Lay') {
+        // For Lay bets, stake = value / (odd - 1)
+        const valueNum = parseFloat(data.value);
+        if (!isNaN(valueNum) && valueNum > 0) {
+          const stakeAmount = valueNum / (oddValue - 1);
+          onChange(index, { ...data, stake: stakeAmount.toFixed(2) });
+        }
+      } else {
+        // For Back bets, stake = value
+        onChange(index, { ...data, stake: data.value });
       }
-    } 
-    // If 'stake' is edited, calculate value
-    else if (data.lastEditedField === 'stake') {
+    } else if (data.lastEditedField === 'stake' && data.type === 'Lay') {
+      // If stake was edited and it's a Lay bet, calculate the value (liability)
       const stakeNum = parseFloat(data.stake);
       if (!isNaN(stakeNum) && stakeNum > 0) {
-        // Calculate value based on stake
-        const valueAmount = calculateValue(stakeNum, realOddValue);
+        // For Lay, value = stake * (odd - 1)
+        const valueAmount = stakeNum * (oddValue - 1);
         onChange(index, { ...data, value: valueAmount.toFixed(2) });
       }
     }
-  }, [data.value, data.stake, data.odd, realOdd, data.type, data.lastEditedField, data.increase, data.commission, data.hasCommission]);
+  }, [data.value, data.stake, data.odd, data.type, data.lastEditedField]);
 
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOddValue = e.target.value;
     onChange(index, { ...data, odd: newOddValue });
-
+    
     // If the odd field is cleared and this house has fixed stake, unfix it
     if (newOddValue === "" && isStakeFixed && onUnfixStake) {
       onUnfixStake(index);
     }
   };
-
+  
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
     onChange(index, { 
       ...data, 
-      value: value,
+      value: e.target.value,
       lastEditedField: 'value'
     });
   };
-
+  
   const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const stake = e.target.value;
     onChange(index, {
       ...data,
-      stake: stake,
+      stake: e.target.value,
       lastEditedField: 'stake'
     });
   };
@@ -208,7 +200,11 @@ export function BettingHouse({
       </div>
 
       <button
-        className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${isStakeFixed ? "bg-betting-green text-white" : "bg-gray-600 text-white"}`}
+        className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${
+          isStakeFixed 
+            ? "bg-betting-green text-white" 
+            : "bg-gray-600 text-white"
+        }`}
         onClick={() => onFixStake(index)}
         disabled={!(parseFloat(data.value) > 0)}
       >
