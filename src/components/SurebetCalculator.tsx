@@ -85,17 +85,20 @@ export default function SurebetCalculator() {
       // Se o odd não for válido, não tenta calcular (permite edição livre)
       if (isNaN(odd) || odd <= 1) return bet;
 
+      // Calcular o value (responsabilidade) corretamente
       let newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
       
+      // Preparar o objeto de bet atualizado
       let newBet = {
         ...bet,
         value: newValue.toFixed(2)
       };
       
-      // Calcular stake para apostas Lay
+      // Corrigindo o cálculo da stake para apostas Lay
       if (bet.type === "Lay" && odd > 1) {
+        // A stake em apostas Lay é calculada como: valor / (odd - 1)
         const layStake = newValue / (odd - 1);
         newBet.stake = layStake.toFixed(2);
       }
@@ -147,8 +150,17 @@ export default function SurebetCalculator() {
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
-    // Add bet type and lay stake information for Lay bets
-    const layStake = bet.type === "Lay" ? parseFloat(bet.stake) || 0 : undefined;
+    // Para apostas Lay, asseguramos que a stake seja calculada corretamente caso não exista
+    let layStake = undefined;
+    if (bet.type === "Lay") {
+      // Se a stake já estiver definida, use-a; caso contrário, calcule
+      if (bet.stake && parseFloat(bet.stake) > 0) {
+        layStake = parseFloat(bet.stake);
+      } else if (value > 0 && odd > 1) {
+        // Calcular stake como: valor / (odd - 1)
+        layStake = value / (odd - 1);
+      }
+    }
     
     return {
       index,
@@ -157,8 +169,8 @@ export default function SurebetCalculator() {
       retorno,
       lucro,
       lucroClass,
-      betType: bet.type, // Pass the bet type
-      layStake // Pass the lay stake value if applicable
+      betType: bet.type,
+      layStake
     };
   });
   
