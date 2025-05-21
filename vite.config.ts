@@ -33,5 +33,11 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      outDir: 'dist',
+      emptyOutDir: true, // Limpa a pasta dist antes de cada build
+      sourcemap: false,
+      minify: 'terser',
+    },
   };
 });
