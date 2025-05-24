@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake, calculateCashback } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -17,11 +17,8 @@ export default function SurebetCalculator() {
     odd: "2.00",
     value: "",
     type: "Back",
-    hasCommission: false,
-    commission: "",
-    hasFreebet: false,
-    increase: "",
-    stake: "" // Initialize the new stake field
+    cashback: "",
+    stake: ""
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
@@ -70,9 +67,7 @@ export default function SurebetCalculator() {
     // This allows the user to freely type in the odd field
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    const fixedReturn = fixedBet.hasFreebet
-      ? (fixedOdd - 1) * fixedValue
-      : fixedOdd * fixedValue;
+    const fixedReturn = fixedOdd * fixedValue;
 
     const updated = activeBets.map((bet, i) => {
       // Don't change the fixed bet's stake
@@ -86,9 +81,7 @@ export default function SurebetCalculator() {
       if (isNaN(odd) || odd <= 1) return bet;
 
       // Calculate the value correctly
-      let newValue = bet.hasFreebet
-        ? fixedReturn / (odd - 1)
-        : fixedReturn / odd;
+      let newValue = fixedReturn / odd;
 
       // Round to 2 decimal places for consistent display
       newValue = parseFloat(newValue.toFixed(2));
@@ -135,27 +128,21 @@ export default function SurebetCalculator() {
 
   const activeBets = bets.slice(0, numBets);
   
-  // Collect freebet indexes for visual indication
-  const freebetIndexes = activeBets
-    .map((bet, index) => bet.hasFreebet ? index : -1)
-    .filter(index => index !== -1);
-  
-  // Calculate total invested amount (excluding freebets)
+  // Calculate total invested amount
   const totalInvested = activeBets.reduce((acc, b) => {
-    return acc + (!b.hasFreebet ? (parseFloat(b.value) || 0) : 0);
+    return acc + (parseFloat(b.value) || 0);
   }, 0);
   
   // Calculate table data for each bet outcome
   const tableData: TableRowData[] = activeBets.map((bet, index) => {
     const value = parseFloat(bet.value) || 0;
     const odd = calculateRealOdd(bet);
+    const cashbackValue = calculateCashback(bet);
     
-    // Calculate return based on whether it's a freebet or not
-    const retorno = bet.hasFreebet 
-      ? (odd - 1) * value 
-      : odd * value;
+    // Calculate return normally
+    const retorno = odd * value;
     
-    // For profit calculation, we only subtract the total investment
+    // For profit calculation, we subtract the total investment and add cashback in case of loss
     const lucro = retorno - totalInvested;
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
@@ -184,7 +171,8 @@ export default function SurebetCalculator() {
       lucro,
       lucroClass,
       betType: bet.type,
-      layStake
+      layStake,
+      cashbackValue
     };
   });
   
@@ -197,8 +185,8 @@ export default function SurebetCalculator() {
     const value = parseFloat(bet.value);
     if (isNaN(odd) || !value) return 0;
     
-    // Calculate return based on whether it's a freebet or not
-    return bet.hasFreebet ? (odd - 1) * value : odd * value;
+    // Calculate return normally
+    return odd * value;
   });
 
   const minReturn = Math.min(...fixedReturns);
@@ -206,20 +194,11 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
-      {/* Nova marca d'água com a imagem repetida */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{
-        backgroundImage: "url('/lovable-uploads/28bd1147-f993-4695-b904-b131571e6920.png')",
-        backgroundRepeat: "repeat",
-        backgroundSize: "200px auto",
-        opacity: 0.03
-      }}>
-      </div>
-      
       <div className="w-full max-w-xs md:max-w-full relative z-10">
         <Logo />
       </div>
       
-      <h1 className="text-3xl font-bold mb-8 relative z-10">Bet sem medo</h1>
+      <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
 
       <div className="mb-6 relative z-10">
         <label className="mr-4">Número de Casas:</label>
@@ -252,7 +231,7 @@ export default function SurebetCalculator() {
       <BettingTable 
         tableData={tableData} 
         minReturn={minReturn}
-        freebetIndexes={freebetIndexes}
+        freebetIndexes={[]}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 

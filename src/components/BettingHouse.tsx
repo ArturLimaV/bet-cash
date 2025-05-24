@@ -38,22 +38,7 @@ export function BettingHouse({
     
     let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
 
-    // Apply commission if present
-    if (data.hasCommission && data.commission !== "") {
-      const commissionValue = parseFloat(data.commission);
-      if (!isNaN(commissionValue)) {
-        baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
-      }
-    }
-    
-    // Apply increase if present
-    const aumentoValue = parseFloat(data.increase);
-    let oddReal = baseOdd;
-    if (!isNaN(aumentoValue) && aumentoValue > 0) {
-      oddReal = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
-    }
-
-    return oddReal.toFixed(3);
+    return baseOdd.toFixed(3);
   };
 
   const realOdd = calculateDisplayOdd();
@@ -149,21 +134,6 @@ export function BettingHouse({
         Odd real: {realOdd}
       </p>
 
-      <label className="block mt-4 mb-2">Aumento (%)</label>
-      <input
-        type="number"
-        step="0.01"
-        className="w-full p-2 rounded bg-[#2c3545] text-white"
-        placeholder="Digite o aumento %"
-        value={data.increase || ""}
-        onChange={(e) => {
-          if (isStakeFixed) {
-            setValuesChangedSinceFixing(true);
-          }
-          onChange(index, { ...data, increase: e.target.value });
-        }}
-      />
-
       <label className="block mt-4 mb-2">Tipo</label>
       <select
         className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
@@ -201,54 +171,22 @@ export function BettingHouse({
         </>
       )}
 
-      <div className="mb-2">
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            className="mr-2"
-            checked={data.hasCommission}
-            onChange={(e) => {
-              if (isStakeFixed) {
-                setValuesChangedSinceFixing(true);
-              }
-              onChange(index, { ...data, hasCommission: e.target.checked });
-            }}
-          />
-          Comissão
-        </label>
-        {data.hasCommission && (
-          <input
-            type="number"
-            step="0.1"
-            placeholder="%"
-            className="w-full mt-1 p-2 rounded bg-[#2c3545] text-white text-sm"
-            value={data.commission || ""}
-            onChange={(e) => {
-              if (isStakeFixed) {
-                setValuesChangedSinceFixing(true);
-              }
-              onChange(index, { ...data, commission: e.target.value });
-            }}
-          />
-        )}
-      </div>
-
-      <div className="mb-4">
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            className="mr-2"
-            checked={data.hasFreebet}
-            onChange={(e) => {
-              if (isStakeFixed) {
-                setValuesChangedSinceFixing(true);
-              }
-              onChange(index, { ...data, hasFreebet: e.target.checked });
-            }}
-          />
-          Freebet
-        </label>
-      </div>
+      <label className="block mb-2">Cashback (%)</label>
+      <input
+        type="number"
+        step="0.1"
+        min="0"
+        max="100"
+        placeholder="Ex: 10"
+        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
+        value={data.cashback || ""}
+        onChange={(e) => {
+          if (isStakeFixed) {
+            setValuesChangedSinceFixing(true);
+          }
+          onChange(index, { ...data, cashback: e.target.value });
+        }}
+      />
 
       <button
         className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${

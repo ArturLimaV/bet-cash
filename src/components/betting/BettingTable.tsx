@@ -10,8 +10,6 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Gift } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 interface BettingTableProps {
   tableData: TableRowData[];
@@ -21,13 +19,6 @@ interface BettingTableProps {
 
 export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn, freebetIndexes = [] }) => {
   const isMobile = useIsMobile();
-  
-  const FreebetIndicator = () => (
-    <Badge variant="outline" className="bg-betting-green text-white flex items-center gap-1 text-xs font-normal">
-      <Gift size={12} />
-      Freebet
-    </Badge>
-  );
   
   // Helper function to format the bet value display based on bet type
   const formatBetValue = (data: TableRowData) => {
@@ -57,7 +48,6 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 <div className="font-medium">Casa:</div>
                 <div className="flex flex-col gap-1">
                   <span>Casa {data.index + 1}</span>
-                  {freebetIndexes.includes(data.index) && <FreebetIndicator />}
                 </div>
                 
                 <div className="font-medium">Valor:</div>
@@ -73,6 +63,13 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 
                 <div className="font-medium">Retorno:</div>
                 <div>R$ {data.retorno.toFixed(2)}</div>
+
+                {data.cashbackValue && data.cashbackValue > 0 && (
+                  <>
+                    <div className="font-medium">Cashback:</div>
+                    <div className="text-blue-400">R$ {data.cashbackValue.toFixed(2)}</div>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -87,6 +84,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
               <TableHead className="px-4 py-2">% da Aposta</TableHead>
               <TableHead className="px-4 py-2">Lucro</TableHead>
               <TableHead className="px-4 py-2">Retorno</TableHead>
+              <TableHead className="px-4 py-2">Cashback</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,7 +93,6 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 <TableCell className="px-4 py-2">
                   <div className="flex flex-col gap-1">
                     <span>Casa {data.index + 1}</span>
-                    {freebetIndexes.includes(data.index) && <FreebetIndicator />}
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2">{formatBetValue(data)}</TableCell>
@@ -104,6 +101,9 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                   R$ {data.lucro.toFixed(2)}
                 </TableCell>
                 <TableCell className="px-4 py-2">R$ {data.retorno.toFixed(2)}</TableCell>
+                <TableCell className="px-4 py-2 text-blue-400">
+                  {data.cashbackValue && data.cashbackValue > 0 ? `R$ ${data.cashbackValue.toFixed(2)}` : '-'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
