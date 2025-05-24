@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd, calculateStake, calculateCashback } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake, calculateCashback, calculateEffectiveOdd } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -60,14 +60,13 @@ export default function SurebetCalculator() {
     // Allow empty field temporarily - don't calculate anything in this case
     if (fixedBet.odd === "") return;
     
-    const fixedOdd = calculateRealOdd(fixedBet);
+    const fixedEffectiveOdd = calculateEffectiveOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
     
     // If unable to get valid odd or fixed value, do nothing
-    // This allows the user to freely type in the odd field
-    if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
+    if (isNaN(fixedEffectiveOdd) || fixedEffectiveOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    const fixedReturn = fixedOdd * fixedValue;
+    const fixedReturn = fixedEffectiveOdd * fixedValue;
 
     const updated = activeBets.map((bet, i) => {
       // Don't change the fixed bet's stake
@@ -76,12 +75,12 @@ export default function SurebetCalculator() {
       // Check if the odd field is empty and don't calculate anything in that case
       if (bet.odd === "") return bet;
 
-      const odd = calculateRealOdd(bet);
+      const effectiveOdd = calculateEffectiveOdd(bet);
       // If the odd is not valid, don't try to calculate (allows free editing)
-      if (isNaN(odd) || odd <= 1) return bet;
+      if (isNaN(effectiveOdd) || effectiveOdd <= 1) return bet;
 
-      // Calculate the value correctly
-      let newValue = fixedReturn / odd;
+      // Calculate the value correctly using effective odd
+      let newValue = fixedReturn / effectiveOdd;
 
       // Round to 2 decimal places for consistent display
       newValue = parseFloat(newValue.toFixed(2));
@@ -139,10 +138,10 @@ export default function SurebetCalculator() {
     const odd = calculateRealOdd(bet);
     const cashbackValue = calculateCashback(bet);
     
-    // Calculate return normally
+    // Calculate return - if this bet wins, use normal odd calculation
     const retorno = odd * value;
     
-    // For profit calculation, we subtract the total investment and add cashback in case of loss
+    // For profit calculation when this bet WINS
     const lucro = retorno - totalInvested;
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
@@ -176,17 +175,17 @@ export default function SurebetCalculator() {
     };
   });
   
-  // Calculate fixed returns for each bet
+  // Calculate fixed returns for each bet using effective odds
   const fixedReturns = activeBets.map((bet, index) => {
     // Ignore calculations for empty odd fields
     if (bet.odd === "") return 0;
     
-    const odd = calculateRealOdd(bet);
+    const effectiveOdd = calculateEffectiveOdd(bet);
     const value = parseFloat(bet.value);
-    if (isNaN(odd) || !value) return 0;
+    if (isNaN(effectiveOdd) || !value) return 0;
     
-    // Calculate return normally
-    return odd * value;
+    // Calculate return using effective odd
+    return effectiveOdd * value;
   });
 
   const minReturn = Math.min(...fixedReturns);

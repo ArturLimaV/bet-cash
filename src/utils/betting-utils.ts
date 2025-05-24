@@ -47,3 +47,21 @@ export const calculateCashback = (bet: Bet): number => {
   
   return (betValue * cashbackPercentage) / 100;
 };
+
+// Calculate the effective odd considering cashback
+export const calculateEffectiveOdd = (bet: Bet): number => {
+  const baseOdd = calculateRealOdd(bet);
+  if (isNaN(baseOdd)) return NaN;
+  
+  const cashbackPercentage = parseFloat(bet.cashback) || 0;
+  
+  // If there's no cashback, return the base odd
+  if (cashbackPercentage === 0) return baseOdd;
+  
+  // Calculate effective odd considering cashback
+  // Formula: effective_odd = (base_odd - cashback_percentage/100) / (1 - cashback_percentage/100)
+  const cashbackDecimal = cashbackPercentage / 100;
+  const effectiveOdd = (baseOdd - cashbackDecimal) / (1 - cashbackDecimal);
+  
+  return effectiveOdd;
+};
