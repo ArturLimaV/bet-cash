@@ -34,6 +34,19 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
     // Default display for Back bets or when no stake is available
     return `R$ ${data.value.toFixed(2)}`;
   };
+
+  // Helper function to format return value including cashback when losing
+  const formatReturnValue = (data: TableRowData, isWinning: boolean) => {
+    if (isWinning) {
+      return `R$ ${data.retorno.toFixed(2)}`;
+    } else {
+      // When losing, show cashback as return if it exists
+      if (data.cashbackValue && data.cashbackValue > 0) {
+        return `R$ ${data.cashbackValue.toFixed(2)}`;
+      }
+      return "R$ 0.00";
+    }
+  };
   
   return (
     <div className="mt-10 w-full max-w-4xl overflow-x-auto relative z-10">
@@ -62,14 +75,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 </div>
                 
                 <div className="font-medium">Retorno:</div>
-                <div>R$ {data.retorno.toFixed(2)}</div>
-
-                {data.cashbackValue && data.cashbackValue > 0 && (
-                  <>
-                    <div className="font-medium">Cashback:</div>
-                    <div className="text-blue-400">R$ {data.cashbackValue.toFixed(2)}</div>
-                  </>
-                )}
+                <div>{formatReturnValue(data, true)}</div>
               </div>
             </div>
           ))}
@@ -84,7 +90,6 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
               <TableHead className="px-4 py-2">% da Aposta</TableHead>
               <TableHead className="px-4 py-2">Lucro</TableHead>
               <TableHead className="px-4 py-2">Retorno</TableHead>
-              <TableHead className="px-4 py-2">Cashback</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -100,9 +105,13 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 <TableCell className={`px-4 py-2 font-semibold ${data.lucroClass}`}>
                   R$ {data.lucro.toFixed(2)}
                 </TableCell>
-                <TableCell className="px-4 py-2">R$ {data.retorno.toFixed(2)}</TableCell>
-                <TableCell className="px-4 py-2 text-blue-400">
-                  {data.cashbackValue && data.cashbackValue > 0 ? `R$ ${data.cashbackValue.toFixed(2)}` : '-'}
+                <TableCell className="px-4 py-2">
+                  {formatReturnValue(data, true)}
+                  {data.cashbackValue && data.cashbackValue > 0 && (
+                    <div className="text-xs text-blue-400 mt-1">
+                      (Cashback se perder: R$ {data.cashbackValue.toFixed(2)})
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
