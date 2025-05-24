@@ -49,6 +49,7 @@ export const calculateCashback = (bet: Bet): number => {
 };
 
 // Calculate the effective odd considering cashback
+// Cashback reduces the effective loss, so we need to adjust the calculation
 export const calculateEffectiveOdd = (bet: Bet): number => {
   const baseOdd = calculateRealOdd(bet);
   if (isNaN(baseOdd)) return NaN;
@@ -58,10 +59,13 @@ export const calculateEffectiveOdd = (bet: Bet): number => {
   // If there's no cashback, return the base odd
   if (cashbackPercentage === 0) return baseOdd;
   
-  // Calculate effective odd considering cashback
-  // Formula: effective_odd = (base_odd - cashback_percentage/100) / (1 - cashback_percentage/100)
+  // With cashback, the effective loss is reduced
+  // If we lose, we get back cashback% of our stake
+  // So the effective loss is: stake * (1 - cashback%)
+  // The effective odd becomes: (win_amount) / (effective_loss + effective_loss)
+  // Simplified: baseOdd / (1 - cashback%)
   const cashbackDecimal = cashbackPercentage / 100;
-  const effectiveOdd = (baseOdd - cashbackDecimal) / (1 - cashbackDecimal);
+  const effectiveOdd = baseOdd / (1 - cashbackDecimal);
   
   return effectiveOdd;
 };
