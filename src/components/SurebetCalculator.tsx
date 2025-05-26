@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd, calculateStake, calculateCashback } from "@/utils/betting-utils";
+import { calculateRealOdd, calculateStake, calculateCashback, calculateEffectiveOdd } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
@@ -51,7 +51,7 @@ export default function SurebetCalculator() {
     }
   };
 
-  // Function to distribute stakes based on the fixed stake with cashback consideration
+  // Function to distribute stakes based on the fixed stake
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
@@ -59,26 +59,14 @@ export default function SurebetCalculator() {
     // Allow empty field temporarily - don't calculate anything in this case
     if (fixedBet.odd === "") return;
     
-    const fixedOdd = calculateRealOdd(fixedBet);
+    const fixedEffectiveOdd = calculateEffectiveOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
-    const fixedCashbackPercentage = parseFloat(fixedBet.cashback) || 0;
     
     // If unable to get valid odd or fixed value, do nothing
-    if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
+    if (isNaN(fixedEffectiveOdd) || fixedEffectiveOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    // Calculate the cashback amount if the fixed bet loses
-    const fixedCashbackAmount = (fixedValue * fixedCashbackPercentage) / 100;
+    const fixedReturn = fixedEffectiveOdd * fixedValue;
 
-    // Calculate potential returns for each scenario:
-    // Scenario 1: Fixed bet wins
-    const fixedWinReturn = fixedOdd * fixedValue;
-    
-    // Calculate what the equal profit should be across all scenarios
-    // We need to solve for a target profit that works for all scenarios
-    
-    // First, let's calculate the target equal profit by considering all scenarios
-    // For this, we need to find values for other bets that create equal profit
-    
     const updated = activeBets.map((bet, i) => {
       // Don't change the fixed bet's stake
       if (i === fixedIndex) return bet;
@@ -86,31 +74,13 @@ export default function SurebetCalculator() {
       // Check if the odd field is empty and don't calculate anything in that case
       if (bet.odd === "") return bet;
 
-      const odd = calculateRealOdd(bet);
+      const effectiveOdd = calculateEffectiveOdd(bet);
       // If the odd is not valid, don't try to calculate (allows free editing)
-      if (isNaN(odd) || odd <= 1) return bet;
+      if (isNaN(effectiveOdd) || effectiveOdd <= 1) return bet;
 
-      // We need to calculate the value for this bet such that:
-      // When this bet wins: (odd * newValue) + cashbackFromOtherBets - totalInvestment = targetProfit
-      // When fixed bet wins: fixedWinReturn + cashbackFromOtherBets - totalInvestment = targetProfit
-      
-      // For equal profit across scenarios, we solve:
-      // fixedWinReturn + fixedCashbackAmount - (fixedValue + sum of other values) = 
-      // odd * newValue + sum of cashbacks from losing bets - (fixedValue + sum of other values)
-      
-      // This simplifies to finding newValue such that all scenarios have equal profit
-      // Let's use the approach where we target the same return amount for all winning scenarios
-      
-      // Calculate required stake to match fixed bet's winning scenario profit
-      // When fixed bet wins: profit = fixedWinReturn + otherCashbacks - totalInvestment
-      // When this bet wins: profit = odd * newValue + otherCashbacks - totalInvestment
-      // Therefore: fixedWinReturn = odd * newValue
-      
-      let newValue = fixedWinReturn / odd;
+      // Calculate the value correctly using effective odd
+      let newValue = fixedReturn / effectiveOdd;
 
-      // Now we need to adjust for cashback considerations
-      // The key insight is that we want equal NET profit in all scenarios
-      
       // Round to 2 decimal places for consistent display
       newValue = parseFloat(newValue.toFixed(2));
       
@@ -167,27 +137,20 @@ export default function SurebetCalculator() {
     const odd = calculateRealOdd(bet);
     const cashbackValue = calculateCashback(bet);
     
-    // Calculate return when this bet WINS
-    const retornoSeGanhar = odd * value;
+    // Calculate return - if this bet wins, use normal odd calculation
+    const retorno = odd * value;
     
-    // Calculate return when this bet LOSES (only cashback if applicable)
-    const retornoSePerder = cashbackValue;
+    // If the bet is lost (return is less than the amount invested), apply cashback
+    const betLost = retorno < value;
+    const finalCashback = betLost ? cashbackValue : 0; // Only apply cashback if the bet is lost
     
     // For profit calculation when this bet WINS
-    // Profit = Return from winning bet + cashback from all losing bets - total invested
-    const cashbackFromLosingBets = activeBets.reduce((acc, otherBet, otherIndex) => {
-      if (otherIndex !== index) {
-        return acc + calculateCashback(otherBet);
-      }
-      return acc;
-    }, 0);
-    
-    const lucro = retornoSeGanhar + cashbackFromLosingBets - totalInvested;
+    const lucro = retorno - totalInvested + finalCashback;  // Add cashback if the bet is lost
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
-    // Calculate Lay Stake
+    // Calculate Lay Stake (this part remains the same as before)
     let layStake = undefined;
     if (bet.type === "Lay") {
       if (bet.stake && parseFloat(bet.stake) > 0) {
@@ -203,29 +166,29 @@ export default function SurebetCalculator() {
       index,
       value,
       percentage,
-      retorno: retornoSeGanhar, // Return when this bet wins
+      retorno,
       lucro,
       lucroClass,
       betType: bet.type,
       layStake,
-      cashbackValue: retornoSePerder // Cashback when this bet loses
+      cashbackValue: finalCashback  // Add cashback if applicable
     };
   });
   
-  // Calculate guaranteed return/profit considering all scenarios
-  const scenarios = activeBets.map((bet, index) => {
-    const winningReturn = calculateRealOdd(bet) * (parseFloat(bet.value) || 0);
-    const cashbackFromLosing = activeBets.reduce((acc, otherBet, otherIndex) => {
-      if (otherIndex !== index) {
-        return acc + calculateCashback(otherBet);
-      }
-      return acc;
-    }, 0);
+  // Calculate fixed returns for each bet using effective odds
+  const fixedReturns = activeBets.map((bet, index) => {
+    // Ignore calculations for empty odd fields
+    if (bet.odd === "") return 0;
     
-    return winningReturn + cashbackFromLosing;
+    const effectiveOdd = calculateEffectiveOdd(bet);
+    const value = parseFloat(bet.value);
+    if (isNaN(effectiveOdd) || !value) return 0;
+    
+    // Calculate return using effective odd
+    return effectiveOdd * value;
   });
 
-  const minReturn = Math.min(...scenarios);
+  const minReturn = Math.min(...fixedReturns);
   const guaranteedProfit = minReturn - totalInvested;
 
   return (
