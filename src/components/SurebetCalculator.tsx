@@ -66,12 +66,19 @@ export default function SurebetCalculator() {
     // If unable to get valid odd or fixed value, do nothing
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    // Calculate the potential return if the fixed bet wins
-    const fixedWinReturn = fixedOdd * fixedValue;
-    
     // Calculate the cashback amount if the fixed bet loses
     const fixedCashbackAmount = (fixedValue * fixedCashbackPercentage) / 100;
 
+    // Calculate potential returns for each scenario:
+    // Scenario 1: Fixed bet wins
+    const fixedWinReturn = fixedOdd * fixedValue;
+    
+    // Calculate what the equal profit should be across all scenarios
+    // We need to solve for a target profit that works for all scenarios
+    
+    // First, let's calculate the target equal profit by considering all scenarios
+    // For this, we need to find values for other bets that create equal profit
+    
     const updated = activeBets.map((bet, i) => {
       // Don't change the fixed bet's stake
       if (i === fixedIndex) return bet;
@@ -83,14 +90,27 @@ export default function SurebetCalculator() {
       // If the odd is not valid, don't try to calculate (allows free editing)
       if (isNaN(odd) || odd <= 1) return bet;
 
-      // Calculate the required stake for this bet to match the fixed bet's scenario
-      // When this bet wins, the return should equal the total investment minus losses plus cashback from losing bets
-      // We need to solve: odd * newValue = totalInvestment - fixedValue + fixedCashbackAmount
+      // We need to calculate the value for this bet such that:
+      // When this bet wins: (odd * newValue) + cashbackFromOtherBets - totalInvestment = targetProfit
+      // When fixed bet wins: fixedWinReturn + cashbackFromOtherBets - totalInvestment = targetProfit
       
-      // For now, let's calculate based on equal profit approach
-      // The target return should be the same as the fixed bet's winning scenario
+      // For equal profit across scenarios, we solve:
+      // fixedWinReturn + fixedCashbackAmount - (fixedValue + sum of other values) = 
+      // odd * newValue + sum of cashbacks from losing bets - (fixedValue + sum of other values)
+      
+      // This simplifies to finding newValue such that all scenarios have equal profit
+      // Let's use the approach where we target the same return amount for all winning scenarios
+      
+      // Calculate required stake to match fixed bet's winning scenario profit
+      // When fixed bet wins: profit = fixedWinReturn + otherCashbacks - totalInvestment
+      // When this bet wins: profit = odd * newValue + otherCashbacks - totalInvestment
+      // Therefore: fixedWinReturn = odd * newValue
+      
       let newValue = fixedWinReturn / odd;
 
+      // Now we need to adjust for cashback considerations
+      // The key insight is that we want equal NET profit in all scenarios
+      
       // Round to 2 decimal places for consistent display
       newValue = parseFloat(newValue.toFixed(2));
       
