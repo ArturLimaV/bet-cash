@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
 import { ResultsSummary } from "./betting/ResultsSummary";
-import { Logo } from "./Logo";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
@@ -12,6 +11,7 @@ export default function SurebetCalculator() {
   const isMobile = useIsMobile();
   const [numBets, setNumBets] = useState(3);
   const [fixedStakeIndex, setFixedStakeIndex] = useState<number | null>(null);
+  
   const [bets, setBets] = useState<Bet[]>(Array(5).fill(null).map(() => ({
     odd: "2.00",
     value: "",
@@ -229,7 +229,7 @@ export default function SurebetCalculator() {
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
       <div className="w-full max-w-xs md:max-w-full relative z-10">
-        <Logo />
+        
       </div>
       
       <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
