@@ -35,17 +35,23 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
     return `R$ ${data.value.toFixed(2)}`;
   };
 
-  // Helper function to format return value including cashback when losing
-  const formatReturnValue = (data: TableRowData, isWinning: boolean) => {
-    if (isWinning) {
-      return `R$ ${data.retorno.toFixed(2)}`;
-    } else {
-      // When losing, show cashback as return if it exists
-      if (data.cashbackValue && data.cashbackValue > 0) {
-        return `R$ ${data.cashbackValue.toFixed(2)}`;
-      }
-      return "R$ 0.00";
-    }
+  // Helper function to format return value showing both win and loss scenarios
+  const formatReturnValue = (data: TableRowData) => {
+    return (
+      <div>
+        <div>Se ganhar: R$ {data.retorno.toFixed(2)}</div>
+        {data.cashbackValue && data.cashbackValue > 0 && (
+          <div className="text-blue-400 text-sm">
+            Se perder: R$ {data.cashbackValue.toFixed(2)}
+          </div>
+        )}
+        {(!data.cashbackValue || data.cashbackValue === 0) && (
+          <div className="text-gray-400 text-sm">
+            Se perder: R$ 0.00
+          </div>
+        )}
+      </div>
+    );
   };
   
   return (
@@ -75,7 +81,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                 </div>
                 
                 <div className="font-medium">Retorno:</div>
-                <div>{formatReturnValue(data, true)}</div>
+                <div>{formatReturnValue(data)}</div>
               </div>
             </div>
           ))}
@@ -106,12 +112,7 @@ export const BettingTable: React.FC<BettingTableProps> = ({ tableData, minReturn
                   R$ {data.lucro.toFixed(2)}
                 </TableCell>
                 <TableCell className="px-4 py-2">
-                  {formatReturnValue(data, true)}
-                  {data.cashbackValue && data.cashbackValue > 0 && (
-                    <div className="text-xs text-blue-400 mt-1">
-                      (Cashback se perder: R$ {data.cashbackValue.toFixed(2)})
-                    </div>
-                  )}
+                  {formatReturnValue(data)}
                 </TableCell>
               </TableRow>
             ))}
