@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -141,24 +140,25 @@ export default function SurebetCalculator() {
     // Calculate return - if this bet wins, use normal odd calculation
     const retorno = odd * value;
     
+    // If the bet is lost (return is less than the amount invested), apply cashback
+    const betLost = retorno < value;
+    const finalCashback = betLost ? cashbackValue : 0; // Only apply cashback if the bet is lost
+    
     // For profit calculation when this bet WINS
-    const lucro = retorno - totalInvested;
+    const lucro = retorno - totalInvested + finalCashback;  // Add cashback if the bet is lost
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
-    // For apostas Lay, asseguramos que a stake seja calculada corretamente caso não exista
+    // Calculate Lay Stake (this part remains the same as before)
     let layStake = undefined;
     if (bet.type === "Lay") {
-      // Se a stake já estiver definida, use-a; caso contrário, calcule
       if (bet.stake && parseFloat(bet.stake) > 0) {
         layStake = parseFloat(bet.stake);
       } else if (value > 0 && odd > 1) {
-        // Calcular stake como: valor / (odd - 1)
         layStake = value / (odd - 1);
       }
     } else {
-      // Para apostas Back, a stake é igual ao valor
       layStake = value;
     }
     
@@ -171,7 +171,7 @@ export default function SurebetCalculator() {
       lucroClass,
       betType: bet.type,
       layStake,
-      cashbackValue
+      cashbackValue: finalCashback  // Add cashback if applicable
     };
   });
   
