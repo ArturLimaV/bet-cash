@@ -15,14 +15,16 @@ export default function SurebetCalculator() {
   const [bets, setBets] = useState<Bet[]>(Array(5).fill(null).map(() => ({
     odd: "2.00",
     value: "",
-    type: "Back",
+    type: "Back", // Fixed as Back
     cashback: "",
-    stake: ""
+    stake: "",
+    houseName: ""
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
     const updated = [...bets];
-    updated[index] = updatedBet;
+    // Ensure type is always "Back"
+    updated[index] = { ...updatedBet, type: "Back" };
     setBets(updated);
   };
 
@@ -69,7 +71,6 @@ export default function SurebetCalculator() {
     console.log("Fixed index:", fixedIndex, "Fixed value:", fixedValue, "Fixed odd:", fixedOdd);
 
     // Calculate what the target profit should be when the fixed bet wins
-    // Profit when fixed bet wins = (fixedValue * fixedOdd) + cashback_from_others - total_investment
     let targetProfit = fixedValue * fixedOdd;
     
     // Add cashback from other bets that will lose
@@ -95,10 +96,6 @@ export default function SurebetCalculator() {
       const odd = calculateRealOdd(bet);
       if (isNaN(odd) || odd <= 0) return;
 
-      // When bet[i] wins, we need:
-      // (value[i] * odd[i]) + cashback_from_others - total_investment = targetProfit - total_investment
-      // Therefore: (value[i] * odd[i]) + cashback_from_others = targetProfit
-      
       // Calculate cashback from other losing bets (including the fixed one)
       let cashbackFromOthers = 0;
       
@@ -124,19 +121,9 @@ export default function SurebetCalculator() {
       if (requiredValue > 0) {
         updated[i] = {
           ...updated[i],
-          value: requiredValue.toFixed(2)
+          value: requiredValue.toFixed(2),
+          stake: requiredValue.toFixed(2) // For Back bets, stake = value
         };
-
-        // Calculate stake for lay bets
-        if (bet.type === "Lay") {
-          const rawOdd = parseFloat(bet.odd);
-          if (!isNaN(rawOdd) && rawOdd > 1) {
-            const layStake = requiredValue / (rawOdd - 1);
-            updated[i].stake = layStake.toFixed(2);
-          }
-        } else {
-          updated[i].stake = requiredValue.toFixed(2);
-        }
       }
     });
 
@@ -164,7 +151,6 @@ export default function SurebetCalculator() {
     const retornoSePerder = cashbackValue; // Only cashback when losing
     
     // Calculate profit when this specific bet WINS
-    // In this scenario: this bet returns money, all others lose but may have cashback
     let lucroSeGanhar = retornoSeGanhar; // Return from winning bet
     
     // Add cashback from all OTHER losing bets
@@ -183,28 +169,17 @@ export default function SurebetCalculator() {
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucroSeGanhar >= 0 ? "text-green-400" : "text-red-400";
     
-    // Calculate Lay Stake
-    let layStake = undefined;
-    if (bet.type === "Lay") {
-      if (bet.stake && parseFloat(bet.stake) > 0) {
-        layStake = parseFloat(bet.stake);
-      } else if (value > 0 && odd > 1) {
-        layStake = value / (odd - 1);
-      }
-    } else {
-      layStake = value;
-    }
-    
     return {
       index,
       value,
       percentage,
-      retorno: retornoSeGanhar, // Return when this bet wins
-      lucro: lucroSeGanhar, // Profit when this bet wins (considering cashback from others)
+      retorno: retornoSeGanhar,
+      lucro: lucroSeGanhar,
       lucroClass,
       betType: bet.type,
-      layStake,
-      cashbackValue: retornoSePerder // Cashback when this bet loses
+      layStake: value, // For Back bets, layStake = value
+      cashbackValue: retornoSePerder,
+      houseName: bet.houseName || `Casa ${index + 1}`
     };
   });
   
@@ -228,10 +203,6 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
-      <div className="w-full max-w-xs md:max-w-full relative z-10">
-        
-      </div>
-      
       <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
 
       <div className="mb-6 relative z-10">
@@ -268,18 +239,6 @@ export default function SurebetCalculator() {
         freebetIndexes={[]}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
-
-      <footer className="mt-10 text-center text-sm opacity-60 flex flex-col items-center relative z-10">
-        <p className="mb-2">Nos siga no Instagram e Telegram</p>
-        <div className="flex space-x-4">
-          <a href="https://t.me/betsemmedofree" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
-            <MessageCircle size={isMobile ? 20 : 24} />
-          </a>
-          <a href="https://www.instagram.com/betsemmedo?igsh=MW1rcjM0Z3I2aTVsNw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">
-            <Instagram size={isMobile ? 20 : 24} />
-          </a>
-        </div>
-      </footer>
     </div>
   );
 }
