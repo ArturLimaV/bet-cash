@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -52,13 +51,13 @@ export default function SurebetCalculator() {
     }
   };
 
-  // Function to distribute stakes based on the fixed stake with proper proportional distribution
+  // Function to distribute stakes based on the fixed stake ensuring equal profit
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
     
     // Allow empty field temporarily - don't calculate anything in this case
-    if (fixedBet.odd === "") return;
+    if (fixedBet.odd === "" || fixedBet.value === "") return;
     
     const fixedOdd = calculateRealOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
@@ -66,66 +65,82 @@ export default function SurebetCalculator() {
     // If unable to get valid odd or fixed value, do nothing
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    // Calculate the target equal profit/loss for all scenarios
-    // We need to find the stakes that make profit equal regardless of which bet wins
+    console.log("=== DISTRIBUTING STAKES ===");
+    console.log("Fixed index:", fixedIndex, "Fixed value:", fixedValue, "Fixed odd:", fixedOdd);
+
+    // Calculate what the target profit should be when the fixed bet wins
+    // Profit when fixed bet wins = (fixedValue * fixedOdd) + cashback_from_others - total_investment
+    let targetProfit = fixedValue * fixedOdd;
     
-    const updated = activeBets.map((bet, i) => {
-      // Don't change the fixed bet's stake
-      if (i === fixedIndex) return bet;
-      
-      // Check if the odd field is empty and don't calculate anything in that case
-      if (bet.odd === "") return bet;
-
-      const odd = calculateRealOdd(bet);
-      // If the odd is not valid, don't try to calculate (allows free editing)
-      if (isNaN(odd) || odd <= 1) return bet;
-
-      // For proportional distribution based on inverse odds
-      // The higher the odd, the lower the stake should be
-      // Formula: stake_i = fixed_stake * (fixed_odd / odd_i)
-      let newValue = fixedValue * (fixedOdd / odd);
-
-      // Round to 2 decimal places for consistent display
-      newValue = parseFloat(newValue.toFixed(2));
-      
-      // Create a new bet object with the updated value
-      const newBet = {
-        ...bet,
-        value: newValue.toFixed(2)
-      };
-      
-      // Calculate the stake correctly - for lay bets, this is ALWAYS value / (odd - 1)
-      let newStake;
-      if (bet.type === "Lay") {
-        const rawOdd = parseFloat(bet.odd);
-        if (!isNaN(rawOdd) && rawOdd > 1) {
-          newStake = newValue / (rawOdd - 1);
-        } else {
-          newStake = 0;
-        }
-      } else {
-        newStake = newValue;
-      }
-      
-      return {
-        ...newBet,
-        stake: newStake.toFixed(2)
-      };
-    });
-
-    // Update the values of the stakes, preserving all other fields
-    const newBets = [...bets];
-    updated.forEach((bet, i) => {
+    // Add cashback from other bets that will lose
+    activeBets.forEach((bet, i) => {
       if (i !== fixedIndex) {
-        newBets[i] = {
-          ...newBets[i],
-          value: bet.value,
-          stake: bet.stake
-        };
+        const cashbackPercentage = parseFloat(bet.cashback) || 0;
+        const currentValue = parseFloat(bet.value) || 0;
+        targetProfit += (currentValue * cashbackPercentage) / 100;
       }
     });
 
-    setBets(newBets);
+    console.log("Target return when fixed bet wins:", targetProfit);
+
+    // Now calculate what values the other bets need to have so that when THEY win,
+    // the profit is the same as when the fixed bet wins
+    const updated = [...bets];
+    
+    activeBets.forEach((bet, i) => {
+      if (i === fixedIndex) return; // Don't change the fixed bet
+      
+      if (bet.odd === "") return; // Skip empty odds
+      
+      const odd = calculateRealOdd(bet);
+      if (isNaN(odd) || odd <= 0) return;
+
+      // When bet[i] wins, we need:
+      // (value[i] * odd[i]) + cashback_from_others - total_investment = targetProfit - total_investment
+      // Therefore: (value[i] * odd[i]) + cashback_from_others = targetProfit
+      
+      // Calculate cashback from other losing bets (including the fixed one)
+      let cashbackFromOthers = 0;
+      
+      // Cashback from fixed bet when it loses
+      const fixedCashbackPercentage = parseFloat(fixedBet.cashback) || 0;
+      cashbackFromOthers += (fixedValue * fixedCashbackPercentage) / 100;
+      
+      // Cashback from other bets (not including current bet i)
+      activeBets.forEach((otherBet, j) => {
+        if (j !== i && j !== fixedIndex) {
+          const otherCashbackPercentage = parseFloat(otherBet.cashback) || 0;
+          const otherValue = parseFloat(otherBet.value) || 0;
+          cashbackFromOthers += (otherValue * otherCashbackPercentage) / 100;
+        }
+      });
+
+      // We need: (value[i] * odd[i]) + cashbackFromOthers = targetProfit
+      // Therefore: value[i] = (targetProfit - cashbackFromOthers) / odd[i]
+      const requiredValue = (targetProfit - cashbackFromOthers) / odd;
+
+      console.log(`Bet ${i}: odd=${odd}, required value=${requiredValue}, cashback from others=${cashbackFromOthers}`);
+
+      if (requiredValue > 0) {
+        updated[i] = {
+          ...updated[i],
+          value: requiredValue.toFixed(2)
+        };
+
+        // Calculate stake for lay bets
+        if (bet.type === "Lay") {
+          const rawOdd = parseFloat(bet.odd);
+          if (!isNaN(rawOdd) && rawOdd > 1) {
+            const layStake = requiredValue / (rawOdd - 1);
+            updated[i].stake = layStake.toFixed(2);
+          }
+        } else {
+          updated[i].stake = requiredValue.toFixed(2);
+        }
+      }
+    });
+
+    setBets(updated);
   };
 
   const activeBets = bets.slice(0, numBets);
