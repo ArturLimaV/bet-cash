@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -219,28 +220,35 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      <div className="w-full max-w-7xl relative z-10 mb-8 flex justify-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 justify-items-center">
-          {activeBets.map((bet, index) => (
-            <BettingHouse
-              key={index}
-              index={index}
-              data={bet}
-              onChange={handleChange}
-              onFixStake={handleFixStake}
-              onUnfixStake={handleUnfixStake}
-              isStakeFixed={fixedStakeIndex === index}
-            />
-          ))}
+      <div className="w-full max-w-7xl relative z-10 mb-8">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 justify-items-center">
+            {activeBets.map((bet, index) => (
+              <BettingHouse
+                key={index}
+                index={index}
+                data={bet}
+                onChange={handleChange}
+                onFixStake={handleFixStake}
+                onUnfixStake={handleUnfixStake}
+                isStakeFixed={fixedStakeIndex === index}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      <BettingTable 
-        tableData={tableData} 
-        minReturn={minReturn}
-        freebetIndexes={[]}
-      />
-      <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
+      <div className="w-full max-w-7xl relative z-10">
+        <BettingTable 
+          tableData={tableData} 
+          minReturn={minReturn}
+          freebetIndexes={[]}
+        />
+      </div>
+      
+      <div className="w-full max-w-7xl relative z-10">
+        <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
+      </div>
     </div>
   );
 }

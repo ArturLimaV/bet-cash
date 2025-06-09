@@ -10,8 +10,8 @@ interface BettingTableProps {
 
 export function BettingTable({ tableData, minReturn, freebetIndexes }: BettingTableProps) {
   return (
-    <div className="w-full flex justify-center">
-      <div className="mt-8 bg-[#1b2432] p-6 rounded-lg w-full max-w-4xl relative z-10">
+    <div className="mt-8 bg-[#1b2432] p-6 rounded-lg w-full relative z-10 flex justify-center">
+      <div className="w-full max-w-4xl">
         <h2 className="text-xl font-bold mb-4 text-center">Distribuição de Apostas</h2>
         
         <Table>
