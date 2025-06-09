@@ -202,7 +202,7 @@ export default function SurebetCalculator() {
   const guaranteedProfit = minReturn - totalInvested;
 
   return (
-    <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
+    <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative">
       <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
 
       <div className="mb-6 relative z-10">
@@ -211,26 +211,28 @@ export default function SurebetCalculator() {
           value={numBets}
           onChange={(e) => {
             setNumBets(Number(e.target.value));
-            setFixedStakeIndex(null); // Reset fixed stake quando mudar número de casas
+            setFixedStakeIndex(null);
           }}
-          className="p-2 bg-[#2c3545] text-white rounded"
+          className="p-2 bg-betting-input text-white rounded"
         >
           {[2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
 
-      <div className="flex gap-4 flex-wrap justify-center relative z-10">
-        {activeBets.map((bet, index) => (
-          <BettingHouse
-            key={index}
-            index={index}
-            data={bet}
-            onChange={handleChange}
-            onFixStake={handleFixStake}
-            onUnfixStake={handleUnfixStake}
-            isStakeFixed={fixedStakeIndex === index}
-          />
-        ))}
+      <div className="w-full max-w-7xl relative z-10 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 justify-items-center">
+          {activeBets.map((bet, index) => (
+            <BettingHouse
+              key={index}
+              index={index}
+              data={bet}
+              onChange={handleChange}
+              onFixStake={handleFixStake}
+              onUnfixStake={handleUnfixStake}
+              isStakeFixed={fixedStakeIndex === index}
+            />
+          ))}
+        </div>
       </div>
 
       <BettingTable 
