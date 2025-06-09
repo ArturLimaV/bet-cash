@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Bet } from "@/types/betting-types";
 import { Check } from "lucide-react";
@@ -94,11 +95,11 @@ export function BettingHouse({
   };
 
   return (
-    <div className="bg-betting-card text-white p-6 rounded-lg w-full max-w-sm border border-gray-700">
+    <div className="bg-[#1b2432] text-white p-6 rounded-lg w-full max-w-xs border border-gray-700">
       <label className="block mb-2">Nome da Casa</label>
       <input
         type="text"
-        className="w-full p-2 rounded bg-betting-input text-white mb-4"
+        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
         value={data.houseName || ""}
         placeholder={`Casa ${index + 1}`}
         onChange={handleHouseNameChange}
@@ -107,7 +108,7 @@ export function BettingHouse({
       <label className="block mb-2">Odd</label>
       <input
         type="text"
-        className="w-full p-2 rounded bg-betting-input text-white"
+        className="w-full p-2 rounded bg-[#2c3545] text-white"
         value={data.odd}
         onChange={handleOddChange}
       />
@@ -119,7 +120,7 @@ export function BettingHouse({
       <input
         type="number"
         step="0.01"
-        className="w-full p-2 rounded bg-betting-input text-white mb-4"
+        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
         value={data.value}
         onChange={handleValueChange}
       />
@@ -131,7 +132,7 @@ export function BettingHouse({
         min="0"
         max="100"
         placeholder="Ex: 10"
-        className="w-full p-2 rounded bg-betting-input text-white mb-4"
+        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
         value={data.cashback || ""}
         onChange={(e) => {
           if (isStakeFixed) {
