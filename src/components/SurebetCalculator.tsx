@@ -253,18 +253,30 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      <div className="flex gap-4 flex-wrap justify-center relative z-10">
-        {activeBets.map((bet, index) => (
-          <BettingHouse
-            key={index}
-            index={index}
-            data={bet}
-            onChange={handleChange}
-            onFixStake={handleFixStake}
-            onUnfixStake={handleUnfixStake}
-            isStakeFixed={fixedStakeIndex === index}
-          />
-        ))}
+      {/* Betting Houses Container - Horizontal on desktop, vertical on mobile */}
+      <div className={`w-full max-w-7xl mb-8 relative z-10 ${
+        isMobile 
+          ? 'flex flex-col gap-4 items-center' 
+          : 'overflow-x-auto pb-4'
+      }`}>
+        <div className={`${
+          isMobile 
+            ? 'flex flex-col gap-4' 
+            : 'flex gap-4 min-w-max px-4'
+        }`}>
+          {activeBets.map((bet, index) => (
+            <div key={index} className={isMobile ? 'w-full max-w-xs' : 'flex-shrink-0'}>
+              <BettingHouse
+                index={index}
+                data={bet}
+                onChange={handleChange}
+                onFixStake={handleFixStake}
+                onUnfixStake={handleUnfixStake}
+                isStakeFixed={fixedStakeIndex === index}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <BettingTable 
