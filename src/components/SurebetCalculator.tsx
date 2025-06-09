@@ -234,7 +234,10 @@ export default function SurebetCalculator() {
         />
       </div>
 
-      <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
+      <h1 className="text-3xl font-bold mb-8 relative z-10">
+        <span className="text-white">Calculadora de </span>
+        <span className="text-yellow-400">Cashout</span>
+      </h1>
 
       <div className="mb-6 relative z-10">
         <label className="mr-4">Número de Casas:</label>
