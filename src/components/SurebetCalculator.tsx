@@ -203,6 +203,28 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
+      {/* Watermark Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Grid pattern of watermarks */}
+        {Array.from({ length: 20 }).map((_, i) => {
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          return (
+            <img 
+              key={i}
+              src="/lovable-uploads/7c3b253d-84bb-4f60-bfa3-fb9d4c4b6230.png" 
+              alt="" 
+              className="absolute w-32 h-32 opacity-5"
+              style={{
+                top: `${row * 25}%`,
+                left: `${col * 25}%`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          );
+        })}
+      </div>
+
       {/* Main Logo */}
       <div className="mb-6 relative z-10">
         <img 
