@@ -64,7 +64,7 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				betting: {
-					'bg': '#1a3d2e',
+					'bg': '#121c2b',
 					'card': '#1b2432',
 					'input': '#2c3545',
 					'green': '#1e5a33',
