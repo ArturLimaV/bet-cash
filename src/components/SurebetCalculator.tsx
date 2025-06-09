@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -202,7 +203,60 @@ export default function SurebetCalculator() {
   const guaranteedProfit = minReturn - totalInvested;
 
   return (
-    <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
+    <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
+      {/* Watermark Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Large watermarks */}
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute top-20 left-10 w-32 h-32 opacity-5 rotate-12"
+        />
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute top-96 right-16 w-40 h-40 opacity-5 -rotate-12"
+        />
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute bottom-32 left-20 w-36 h-36 opacity-5 rotate-45"
+        />
+        
+        {/* Medium watermarks */}
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute top-80 left-1/3 w-24 h-24 opacity-3 -rotate-45"
+        />
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute bottom-80 right-1/3 w-28 h-28 opacity-3 rotate-30"
+        />
+        
+        {/* Small watermarks */}
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute top-64 right-1/4 w-20 h-20 opacity-2 rotate-90"
+        />
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="" 
+          className="absolute bottom-64 left-1/4 w-20 h-20 opacity-2 -rotate-30"
+        />
+      </div>
+
+      {/* Main Logo */}
+      <div className="mb-6 relative z-10">
+        <img 
+          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
+          alt="Renda Fixa" 
+          className="w-32 h-32 mx-auto drop-shadow-2xl"
+        />
+      </div>
+
       <h1 className="text-3xl font-bold mb-8 relative z-10">Calculadora de Surebet</h1>
 
       <div className="mb-6 relative z-10">
@@ -213,7 +267,7 @@ export default function SurebetCalculator() {
             setNumBets(Number(e.target.value));
             setFixedStakeIndex(null); // Reset fixed stake quando mudar número de casas
           }}
-          className="p-2 bg-[#2c3545] text-white rounded"
+          className="p-2 bg-betting-input text-white rounded"
         >
           {[2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
         </select>
@@ -239,6 +293,26 @@ export default function SurebetCalculator() {
         freebetIndexes={[]}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
+
+      {/* Social Media Icons */}
+      <div className="mt-12 flex gap-6 relative z-10">
+        <a 
+          href="https://t.me/rendafixaa_zerorisco" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 rounded-full transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+        >
+          <MessageCircle size={24} className="text-white" />
+        </a>
+        <a 
+          href="https://www.instagram.com/renda_fixa_zerored?igsh=bXBnbTZidXdoamky&utm_source=qr" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-110"
+        >
+          <Instagram size={24} className="text-white" />
+        </a>
+      </div>
     </div>
   );
 }
