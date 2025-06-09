@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -205,79 +203,6 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
-      {/* Watermark Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {/* Top row */}
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-16 left-16 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-16 left-1/2 transform -translate-x-1/2 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-16 right-16 w-24 h-24 opacity-3"
-        />
-        
-        {/* Middle-top row */}
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-64 left-32 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-64 right-32 w-24 h-24 opacity-3"
-        />
-        
-        {/* Center row */}
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-1/2 left-12 transform -translate-y-1/2 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute top-1/2 right-12 transform -translate-y-1/2 w-24 h-24 opacity-3"
-        />
-        
-        {/* Middle-bottom row */}
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute bottom-64 left-32 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute bottom-64 right-32 w-24 h-24 opacity-3"
-        />
-        
-        {/* Bottom row */}
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute bottom-16 left-16 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-24 h-24 opacity-3"
-        />
-        <img 
-          src="/lovable-uploads/5e1707b4-b5b7-4fc6-8e0c-662fa09b2102.png" 
-          alt="" 
-          className="absolute bottom-16 right-16 w-24 h-24 opacity-3"
-        />
-      </div>
-
       {/* Main Logo */}
       <div className="mb-6 relative z-10">
         <img 
@@ -346,4 +271,3 @@ export default function SurebetCalculator() {
     </div>
   );
 }
-
