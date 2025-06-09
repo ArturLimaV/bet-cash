@@ -254,18 +254,18 @@ export default function SurebetCalculator() {
       </div>
 
       {/* Betting Houses Container - Horizontal on desktop, vertical on mobile */}
-      <div className={`w-full max-w-7xl mb-8 relative z-10 ${
+      <div className={`w-full mb-8 relative z-10 ${
         isMobile 
-          ? 'flex flex-col gap-4 items-center' 
-          : 'overflow-x-auto pb-4'
+          ? 'flex flex-col gap-4 items-center max-w-xs' 
+          : 'flex justify-center'
       }`}>
         <div className={`${
           isMobile 
-            ? 'flex flex-col gap-4' 
-            : 'flex gap-4 min-w-max px-4'
+            ? 'flex flex-col gap-4 w-full' 
+            : 'flex gap-4 justify-center items-start'
         }`}>
           {activeBets.map((bet, index) => (
-            <div key={index} className={isMobile ? 'w-full max-w-xs' : 'flex-shrink-0'}>
+            <div key={index} className={isMobile ? 'w-full' : 'flex-shrink-0'}>
               <BettingHouse
                 index={index}
                 data={bet}
