@@ -236,7 +236,7 @@ export default function SurebetCalculator() {
 
       <h1 className="text-3xl font-bold mb-8 relative z-10">
         <span className="text-white">Calculadora de </span>
-        <span className="text-yellow-400">Cashout</span>
+        <span className="text-yellow-400">Cashback</span>
       </h1>
 
       <div className="mb-6 relative z-10">
@@ -253,12 +253,13 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      {/* Betting Houses Container - Horizontal on desktop, vertical on mobile */}
+      {/* Betting Houses Container with Lateral Results */}
       <div className={`w-full mb-8 relative z-10 ${
         isMobile 
           ? 'flex flex-col gap-4 items-center max-w-xs' 
-          : 'flex justify-center'
+          : 'flex justify-center items-start gap-8'
       }`}>
+        {/* Betting Houses */}
         <div className={`${
           isMobile 
             ? 'flex flex-col gap-4 w-full' 
@@ -277,6 +278,33 @@ export default function SurebetCalculator() {
             </div>
           ))}
         </div>
+
+        {/* Lateral Results - Only show on desktop */}
+        {!isMobile && (
+          <div className="bg-betting-card p-6 rounded-lg border border-gray-700 min-w-[280px]">
+            <h2 className="text-xl font-semibold mb-4 text-yellow-400">Resultados</h2>
+            <div className="space-y-3">
+              <div>
+                <span className="text-gray-300">Lucro garantido:</span>
+                <div className={`text-lg font-bold ${guaranteedProfit >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  R$ {guaranteedProfit.toFixed(2)}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-300">ROI:</span>
+                <div className={`text-lg font-bold ${guaranteedProfit >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {totalInvested > 0 ? ((guaranteedProfit / totalInvested) * 100).toFixed(2) : "0.00"}%
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-300">Investimento total:</span>
+                <div className="text-lg font-bold text-white">
+                  R$ {totalInvested.toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <BettingTable 
