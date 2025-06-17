@@ -1,8 +1,9 @@
 
-import ApostaBoosted from "./ApostaBoosted";
+import SurebetCalculator from "@/components/SurebetCalculator";
+import { ApostaBoostedCalculator } from "@/components/ApostaBoostedCalculator";
 
 const Index = () => {
-  return <ApostaBoosted />;
+  return <SurebetCalculator />;
 };
 
 export default Index;

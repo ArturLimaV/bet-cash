@@ -10,20 +10,8 @@ export const calculateRealOdd = (bet: Bet): number => {
   // Return NaN for invalid odds to allow proper handling in components
   if (isNaN(rawOdd) || rawOdd <= 0) return NaN;
   
+  // For Lay bets, convert the odd
   let baseOdd = bet.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
-
-  if (bet.hasCommission && bet.commission !== "") {
-    const commissionValue = parseFloat(bet.commission);
-    if (!isNaN(commissionValue)) {
-      baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
-    }
-  }
-  
-  // Apply increase if present (renamed from stakeIncrease to increase)
-  const aumentoValue = parseFloat(bet.increase);
-  if (!isNaN(aumentoValue) && aumentoValue > 0) {
-    baseOdd = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
-  }
 
   return baseOdd;
 };
@@ -46,4 +34,38 @@ export const calculateStake = (bet: Bet): number => {
   
   // For Back bets and other types, stake = value
   return value;
+};
+
+// Helper function to calculate cashback value
+export const calculateCashback = (bet: Bet): number => {
+  if (!bet.cashback || bet.cashback === "" || !bet.value || bet.value === "") return 0;
+  
+  const cashbackPercentage = parseFloat(bet.cashback);
+  const betValue = parseFloat(bet.value);
+  
+  if (isNaN(cashbackPercentage) || isNaN(betValue)) return 0;
+  
+  return (betValue * cashbackPercentage) / 100;
+};
+
+// Calculate the effective odd considering cashback
+// Cashback reduces the effective loss, so we need to adjust the calculation
+export const calculateEffectiveOdd = (bet: Bet): number => {
+  const baseOdd = calculateRealOdd(bet);
+  if (isNaN(baseOdd)) return NaN;
+  
+  const cashbackPercentage = parseFloat(bet.cashback) || 0;
+  
+  // If there's no cashback, return the base odd
+  if (cashbackPercentage === 0) return baseOdd;
+  
+  // With cashback, the effective loss is reduced
+  // If we lose, we get back cashback% of our stake
+  // So the effective loss is: stake * (1 - cashback%)
+  // The effective odd becomes: (win_amount) / (effective_loss + effective_loss)
+  // Simplified: baseOdd / (1 - cashback%)
+  const cashbackDecimal = cashbackPercentage / 100;
+  const effectiveOdd = baseOdd / (1 - cashbackDecimal);
+  
+  return effectiveOdd;
 };
