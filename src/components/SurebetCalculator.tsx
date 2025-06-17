@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BettingHouse } from "./BettingHouse";
 import { BettingTable } from "./betting/BettingTable";
@@ -9,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
 import { calculateRealOdd, calculateStake } from "@/utils/betting-utils";
 
-export default function SurebetCalculator() {
+const SurebetCalculator = () => {
   const isMobile = useIsMobile();
   const [numBets, setNumBets] = useState(3);
   const [fixedStakeIndex, setFixedStakeIndex] = useState<number | null>(null);
@@ -21,7 +20,7 @@ export default function SurebetCalculator() {
     commission: "",
     hasFreebet: false,
     increase: "",
-    stake: "" // Initialize the new stake field
+    stake: ""
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
@@ -30,7 +29,6 @@ export default function SurebetCalculator() {
     setBets(updated);
   };
 
-  // Atualização automática quando qualquer aposta mudar
   useEffect(() => {
     if (fixedStakeIndex !== null) {
       distributeStakes(fixedStakeIndex);
@@ -38,36 +36,29 @@ export default function SurebetCalculator() {
   }, [bets]);
 
   const handleFixStake = (fixedIndex: number) => {
-    // Se já estiver fixada neste índice, desmarcar
     if (fixedStakeIndex === fixedIndex) {
       setFixedStakeIndex(null);
     } else {
-      // Caso contrário, fixar neste índice e distribuir as stakes
       setFixedStakeIndex(fixedIndex);
       distributeStakes(fixedIndex);
     }
   };
 
-  // New function to handle unfixing the stake when odd is cleared
   const handleUnfixStake = (index: number) => {
     if (fixedStakeIndex === index) {
       setFixedStakeIndex(null);
     }
   };
 
-  // Function to distribute stakes based on the fixed stake
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
     
-    // Allow empty field temporarily - don't calculate anything in this case
     if (fixedBet.odd === "") return;
     
     const fixedOdd = calculateRealOdd(fixedBet);
     const fixedValue = parseFloat(fixedBet.value);
     
-    // If unable to get valid odd or fixed value, do nothing
-    // This allows the user to freely type in the odd field
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
     const fixedReturn = fixedBet.hasFreebet
@@ -75,31 +66,24 @@ export default function SurebetCalculator() {
       : fixedOdd * fixedValue;
 
     const updated = activeBets.map((bet, i) => {
-      // Don't change the fixed bet's stake
       if (i === fixedIndex) return bet;
       
-      // Check if the odd field is empty and don't calculate anything in that case
       if (bet.odd === "") return bet;
 
       const odd = calculateRealOdd(bet);
-      // If the odd is not valid, don't try to calculate (allows free editing)
       if (isNaN(odd) || odd <= 1) return bet;
 
-      // Calculate the value correctly
       let newValue = bet.hasFreebet
         ? fixedReturn / (odd - 1)
         : fixedReturn / odd;
 
-      // Round to 2 decimal places for consistent display
       newValue = parseFloat(newValue.toFixed(2));
       
-      // Create a new bet object with the updated value
       const newBet = {
         ...bet,
         value: newValue.toFixed(2)
       };
       
-      // Calculate the stake correctly - for lay bets, this is ALWAYS value / (odd - 1)
       let newStake;
       if (bet.type === "Lay") {
         const rawOdd = parseFloat(bet.odd);
@@ -118,7 +102,6 @@ export default function SurebetCalculator() {
       };
     });
 
-    // Update the values of the stakes, preserving all other fields
     const newBets = [...bets];
     updated.forEach((bet, i) => {
       if (i !== fixedIndex) {
@@ -135,44 +118,35 @@ export default function SurebetCalculator() {
 
   const activeBets = bets.slice(0, numBets);
   
-  // Collect freebet indexes for visual indication
   const freebetIndexes = activeBets
     .map((bet, index) => bet.hasFreebet ? index : -1)
     .filter(index => index !== -1);
   
-  // Calculate total invested amount (excluding freebets)
   const totalInvested = activeBets.reduce((acc, b) => {
     return acc + (!b.hasFreebet ? (parseFloat(b.value) || 0) : 0);
   }, 0);
   
-  // Calculate table data for each bet outcome
   const tableData: TableRowData[] = activeBets.map((bet, index) => {
     const value = parseFloat(bet.value) || 0;
     const odd = calculateRealOdd(bet);
     
-    // Calculate return based on whether it's a freebet or not
     const retorno = bet.hasFreebet 
       ? (odd - 1) * value 
       : odd * value;
     
-    // For profit calculation, we only subtract the total investment
     const lucro = retorno - totalInvested;
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
     const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
-    // For apostas Lay, asseguramos que a stake seja calculada corretamente caso não exista
     let layStake = undefined;
     if (bet.type === "Lay") {
-      // Se a stake já estiver definida, use-a; caso contrário, calcule
       if (bet.stake && parseFloat(bet.stake) > 0) {
         layStake = parseFloat(bet.stake);
       } else if (value > 0 && odd > 1) {
-        // Calcular stake como: valor / (odd - 1)
         layStake = value / (odd - 1);
       }
     } else {
-      // Para apostas Back, a stake é igual ao valor
       layStake = value;
     }
     
@@ -188,16 +162,13 @@ export default function SurebetCalculator() {
     };
   });
   
-  // Calculate fixed returns for each bet
   const fixedReturns = activeBets.map((bet, index) => {
-    // Ignore calculations for empty odd fields
     if (bet.odd === "") return 0;
     
     const odd = calculateRealOdd(bet);
     const value = parseFloat(bet.value);
     if (isNaN(odd) || !value) return 0;
     
-    // Calculate return based on whether it's a freebet or not
     return bet.hasFreebet ? (odd - 1) * value : odd * value;
   });
 
@@ -206,7 +177,6 @@ export default function SurebetCalculator() {
 
   return (
     <div className="min-h-screen bg-[#121c2b] text-white flex flex-col items-center py-8 px-4 relative">
-      {/* Nova marca d'água com a imagem repetida */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{
         backgroundImage: "url('/lovable-uploads/28bd1147-f993-4695-b904-b131571e6920.png')",
         backgroundRepeat: "repeat",
@@ -227,7 +197,7 @@ export default function SurebetCalculator() {
           value={numBets}
           onChange={(e) => {
             setNumBets(Number(e.target.value));
-            setFixedStakeIndex(null); // Reset fixed stake quando mudar número de casas
+            setFixedStakeIndex(null);
           }}
           className="p-2 bg-[#2c3545] text-white rounded"
         >
@@ -269,4 +239,7 @@ export default function SurebetCalculator() {
       </footer>
     </div>
   );
-}
+};
+
+export default SurebetCalculator;
+export { SurebetCalculator };
