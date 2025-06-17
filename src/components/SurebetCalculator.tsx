@@ -202,7 +202,7 @@ export default function SurebetCalculator() {
   const guaranteedProfit = minReturn - totalInvested;
 
   return (
-    <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
+    <div className="min-h-screen text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
       {/* Watermark Background Pattern */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Grid pattern of watermarks */}
