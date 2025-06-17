@@ -1,8 +1,8 @@
 
-import { SurebetCalculator } from "@/components/SurebetCalculator";
+import { CashbackCalculator } from "@/components/CashbackCalculator";
 
 const ApostaBoosted = () => {
-  return <SurebetCalculator />;
+  return <CashbackCalculator />;
 };
 
 export default ApostaBoosted;
