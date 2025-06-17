@@ -36,8 +36,24 @@ export function BettingHouse({
     let rawOdd = parseFloat(data.odd);
     if (isNaN(rawOdd) || rawOdd <= 0) return "Aguardando...";
     
-    // Since we're fixing type as "Back", no conversion needed
-    return rawOdd.toFixed(3);
+    let baseOdd = data.type === "Lay" && rawOdd > 1 ? rawOdd / (rawOdd - 1) : rawOdd;
+
+    // Apply commission if present
+    if (data.hasCommission && data.commission !== "") {
+      const commissionValue = parseFloat(data.commission);
+      if (!isNaN(commissionValue)) {
+        baseOdd = 1 + ((baseOdd - 1) * (1 - commissionValue / 100));
+      }
+    }
+    
+    // Apply increase if present
+    const aumentoValue = parseFloat(data.increase);
+    let oddReal = baseOdd;
+    if (!isNaN(aumentoValue) && aumentoValue > 0) {
+      oddReal = ((baseOdd - 1) * (1 + aumentoValue / 100)) + 1;
+    }
+
+    return oddReal.toFixed(3);
   };
 
   const realOdd = calculateDisplayOdd();
@@ -45,11 +61,11 @@ export function BettingHouse({
   // Modified auto-unfixing logic - only unfix when values change after the bet has been fixed
   useEffect(() => {
     // Only apply when already fixed and values have changed since fixing
-    if (isStakeFixed && valuesChangedSinceFixing && onUnfixStake) {
+    if (data.type === 'Lay' && isStakeFixed && valuesChangedSinceFixing && onUnfixStake) {
       onUnfixStake(index);
       setValuesChangedSinceFixing(false); // Reset after unfixing
     }
-  }, [data.odd, data.value, data.stake, isStakeFixed, valuesChangedSinceFixing]);
+  }, [data.odd, data.value, data.stake, data.type, isStakeFixed, valuesChangedSinceFixing]);
   
   // Calculate stake or value based on changes to the other field
   useEffect(() => {
@@ -60,13 +76,33 @@ export function BettingHouse({
     // Skip calculation if both fields are empty or if no field was edited yet
     if ((!data.value && !data.stake) || !data.lastEditedField) return;
     
-    // For Back bets, stake = value (simplified since we removed Lay bets)
-    if (data.lastEditedField === 'value') {
-      onChange(index, { ...data, stake: data.value, lastEditedField: 'value' });
-    } else if (data.lastEditedField === 'stake') {
-      onChange(index, { ...data, value: data.stake, lastEditedField: 'stake' });
+    // Only perform auto-calculations for Lay bets
+    if (data.type === 'Lay') {
+      // Calculate based on which field was last edited
+      if (data.lastEditedField === 'value') {
+        // When value is changed, calculate stake
+        const valueNum = parseFloat(data.value);
+        if (!isNaN(valueNum) && valueNum > 0) {
+          const stakeAmount = valueNum / (oddValue - 1);
+          onChange(index, { ...data, stake: stakeAmount.toFixed(2), lastEditedField: 'value' });
+        }
+      } else if (data.lastEditedField === 'stake') {
+        // When stake is changed, calculate value
+        const stakeNum = parseFloat(data.stake);
+        if (!isNaN(stakeNum) && stakeNum > 0) {
+          const valueAmount = stakeNum * (oddValue - 1);
+          onChange(index, { ...data, value: valueAmount.toFixed(2), lastEditedField: 'stake' });
+        }
+      }
+    } else {
+      // For Back bets, stake = value
+      if (data.lastEditedField === 'value') {
+        onChange(index, { ...data, stake: data.value, lastEditedField: 'value' });
+      } else if (data.lastEditedField === 'stake') {
+        onChange(index, { ...data, value: data.stake, lastEditedField: 'stake' });
+      }
     }
-  }, [data.value, data.stake, data.odd, data.lastEditedField]);
+  }, [data.value, data.stake, data.odd, data.type, data.lastEditedField]);
 
   // Handlers that track changes after fixing
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,23 +123,20 @@ export function BettingHouse({
     });
   };
   
-  const handleHouseNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isStakeFixed) {
       setValuesChangedSinceFixing(true);
     }
-    onChange(index, { ...data, houseName: e.target.value });
+    onChange(index, {
+      ...data,
+      stake: e.target.value,
+      lastEditedField: 'stake'
+    });
   };
 
   return (
     <div className="bg-[#1b2432] text-white p-6 rounded-lg w-full max-w-xs border border-gray-700">
-      <label className="block mb-2">Nome da Casa</label>
-      <input
-        type="text"
-        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
-        value={data.houseName || ""}
-        placeholder={`Casa ${index + 1}`}
-        onChange={handleHouseNameChange}
-      />
+      <div className="text-center text-xl font-bold mb-4">Casa {index + 1}</div>
 
       <label className="block mb-2">Odd</label>
       <input
@@ -116,7 +149,37 @@ export function BettingHouse({
         Odd real: {realOdd}
       </p>
 
-      <label className="block mt-4 mb-2">Valor</label>
+      <label className="block mt-4 mb-2">Aumento (%)</label>
+      <input
+        type="number"
+        step="0.01"
+        className="w-full p-2 rounded bg-[#2c3545] text-white"
+        placeholder="Digite o aumento %"
+        value={data.increase || ""}
+        onChange={(e) => {
+          if (isStakeFixed) {
+            setValuesChangedSinceFixing(true);
+          }
+          onChange(index, { ...data, increase: e.target.value });
+        }}
+      />
+
+      <label className="block mt-4 mb-2">Tipo</label>
+      <select
+        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
+        value={data.type}
+        onChange={(e) => {
+          if (isStakeFixed) {
+            setValuesChangedSinceFixing(true);
+          }
+          onChange(index, { ...data, type: e.target.value });
+        }}
+      >
+        <option value="Back">Back</option>
+        <option value="Lay">Lay</option>
+      </select>
+
+      <label className="block mb-2">Valor</label>
       <input
         type="number"
         step="0.01"
@@ -124,23 +187,68 @@ export function BettingHouse({
         value={data.value}
         onChange={handleValueChange}
       />
+      
+      {data.type === "Lay" && (
+        <>
+          <label className="block mb-2">Stake</label>
+          <input
+            type="number"
+            step="0.01"
+            className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
+            value={data.stake || ""}
+            onChange={handleStakeChange}
+          />
+        </>
+      )}
 
-      <label className="block mb-2">Cashback (%)</label>
-      <input
-        type="number"
-        step="0.1"
-        min="0"
-        max="100"
-        placeholder="Ex: 10"
-        className="w-full p-2 rounded bg-[#2c3545] text-white mb-4"
-        value={data.cashback || ""}
-        onChange={(e) => {
-          if (isStakeFixed) {
-            setValuesChangedSinceFixing(true);
-          }
-          onChange(index, { ...data, cashback: e.target.value });
-        }}
-      />
+      <div className="mb-2">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            className="mr-2"
+            checked={data.hasCommission}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, hasCommission: e.target.checked });
+            }}
+          />
+          Comissão
+        </label>
+        {data.hasCommission && (
+          <input
+            type="number"
+            step="0.1"
+            placeholder="%"
+            className="w-full mt-1 p-2 rounded bg-[#2c3545] text-white text-sm"
+            value={data.commission || ""}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, commission: e.target.value });
+            }}
+          />
+        )}
+      </div>
+
+      <div className="mb-4">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            className="mr-2"
+            checked={data.hasFreebet}
+            onChange={(e) => {
+              if (isStakeFixed) {
+                setValuesChangedSinceFixing(true);
+              }
+              onChange(index, { ...data, hasFreebet: e.target.checked });
+            }}
+          />
+          Freebet
+        </label>
+      </div>
 
       <button
         className={`w-full flex justify-center items-center gap-2 py-2 px-4 rounded disabled:opacity-50 transition-colors ${

@@ -17,7 +17,7 @@ export function Logo() {
             <div className="text-3xl md:text-4xl font-extrabold tracking-wider text-cream-100 text-center">
               <div className="relative inline-block">
                 <span className={`text-[#FFFBEB] font-extrabold tracking-tight ${fontSize}`} style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000" }}>
-                  SURE
+                  BET
                 </span>
               </div>
               <div className="absolute top-8 md:top-10 right-0 md:right-1 z-10">
@@ -29,7 +29,12 @@ export function Logo() {
               </div>
               <div className="relative block mt-1 md:mt-2">
                 <span className={`text-[#FFFBEB] font-extrabold tracking-tight ${fontSize}`} style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000" }}>
-                  BET
+                  SEM
+                </span>
+              </div>
+              <div className="relative block mt-1 md:mt-2">
+                <span className={`text-[#FFFBEB] font-extrabold tracking-tight ${fontSize}`} style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000" }}>
+                  MEDO
                 </span>
               </div>
             </div>
