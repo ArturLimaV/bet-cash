@@ -1,14 +1,12 @@
+
 export interface Bet {
   odd: string;
   value: string;
   type: string;
-  cashback: string;
-  stake: string;
-  lastEditedField?: 'value' | 'stake';
-  houseName?: string;
-  boost?: string;
-  commission?: boolean;
-  freebet?: boolean;
+  cashback: string; // Added cashback field (percentage)
+  stake: string; // Added stake field for Lay bets
+  lastEditedField?: 'value' | 'stake'; // Track which field was last edited
+  houseName?: string; // Added house name field
 }
 
 export interface TableRowData {
@@ -18,8 +16,8 @@ export interface TableRowData {
   retorno: number;
   lucro: number;
   lucroClass: string;
-  betType?: string;
-  layStake?: number;
-  cashbackValue?: number;
-  houseName?: string;
+  betType?: string; // Add bet type information
+  layStake?: number; // Add lay stake value if applicable
+  cashbackValue?: number; // Add cashback value for display
+  houseName?: string; // Add house name for display
 }
