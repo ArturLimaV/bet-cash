@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -78,3 +77,5 @@ export function ApostaBoostedCalculator() {
     </Card>
   );
 }
+
+export default ApostaBoostedCalculator;
