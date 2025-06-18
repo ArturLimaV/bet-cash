@@ -1,34 +1,35 @@
+
 import React, { useState, useEffect } from "react";
-import { BettingHouse } from "./BettingHouse";
+import { SurebetHouse } from "./SurebetHouse";
 import { BettingTable } from "./betting/BettingTable";
 import { ResultsSummary } from "./betting/ResultsSummary";
 import { Instagram, MessageCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Bet, TableRowData } from "@/types/betting-types";
-import { calculateRealOdd, calculateStake, calculateCashback } from "@/utils/betting-utils";
 
 export default function SurebetCalculator() {
   const isMobile = useIsMobile();
-  const [numBets, setNumBets] = useState(3);
+  const [numBets, setNumBets] = useState(4);
   const [fixedStakeIndex, setFixedStakeIndex] = useState<number | null>(null);
   
   const [bets, setBets] = useState<Bet[]>(Array(5).fill(null).map(() => ({
     odd: "2.00",
     value: "",
-    type: "Back", // Fixed as Back
+    type: "Back",
     cashback: "",
     stake: "",
-    houseName: ""
+    houseName: "",
+    boost: "",
+    commission: false,
+    freebet: false
   })));
 
   const handleChange = (index: number, updatedBet: Bet) => {
     const updated = [...bets];
-    // Ensure type is always "Back"
-    updated[index] = { ...updatedBet, type: "Back" };
+    updated[index] = updatedBet;
     setBets(updated);
   };
 
-  // Atualização automática quando qualquer aposta mudar
   useEffect(() => {
     if (fixedStakeIndex !== null) {
       distributeStakes(fixedStakeIndex);
@@ -36,93 +37,65 @@ export default function SurebetCalculator() {
   }, [bets]);
 
   const handleFixStake = (fixedIndex: number) => {
-    // Se já estiver fixada neste índice, desmarcar
     if (fixedStakeIndex === fixedIndex) {
       setFixedStakeIndex(null);
     } else {
-      // Caso contrário, fixar neste índice e distribuir as stakes
       setFixedStakeIndex(fixedIndex);
       distributeStakes(fixedIndex);
     }
   };
 
-  // New function to handle unfixing the stake when odd is cleared
   const handleUnfixStake = (index: number) => {
     if (fixedStakeIndex === index) {
       setFixedStakeIndex(null);
     }
   };
 
-  // Function to distribute stakes based on the fixed stake ensuring equal profit
   const distributeStakes = (fixedIndex: number) => {
     const activeBets = bets.slice(0, numBets);
     const fixedBet = activeBets[fixedIndex];
     
-    // Allow empty field temporarily - don't calculate anything in this case
     if (fixedBet.odd === "" || fixedBet.value === "") return;
     
-    const fixedOdd = calculateRealOdd(fixedBet);
+    const fixedOdd = parseFloat(fixedBet.odd);
     const fixedValue = parseFloat(fixedBet.value);
     
-    // If unable to get valid odd or fixed value, do nothing
     if (isNaN(fixedOdd) || fixedOdd <= 0 || isNaN(fixedValue) || fixedValue <= 0) return;
 
-    console.log("=== DISTRIBUTING STAKES ===");
-    console.log("Fixed index:", fixedIndex, "Fixed value:", fixedValue, "Fixed odd:", fixedOdd);
-
     // Calculate what the target profit should be when the fixed bet wins
-    let targetProfit = fixedValue * fixedOdd;
+    let targetReturn = fixedValue * fixedOdd;
     
-    // Add cashback from other bets that will lose
-    activeBets.forEach((bet, i) => {
-      if (i !== fixedIndex) {
-        const cashbackPercentage = parseFloat(bet.cashback) || 0;
-        const currentValue = parseFloat(bet.value) || 0;
-        targetProfit += (currentValue * cashbackPercentage) / 100;
-      }
-    });
+    // Apply boost if present
+    if (fixedBet.boost) {
+      const boostPercentage = parseFloat(fixedBet.boost) || 0;
+      targetReturn = fixedValue * ((fixedOdd - 1) * (1 + boostPercentage / 100) + 1);
+    }
 
-    console.log("Target return when fixed bet wins:", targetProfit);
-
-    // Now calculate what values the other bets need to have so that when THEY win,
-    // the profit is the same as when the fixed bet wins
     const updated = [...bets];
     
     activeBets.forEach((bet, i) => {
-      if (i === fixedIndex) return; // Don't change the fixed bet
+      if (i === fixedIndex) return;
       
-      if (bet.odd === "") return; // Skip empty odds
+      if (bet.odd === "") return;
       
-      const odd = calculateRealOdd(bet);
+      const odd = parseFloat(bet.odd);
       if (isNaN(odd) || odd <= 0) return;
 
-      // Calculate cashback from other losing bets (including the fixed one)
-      let cashbackFromOthers = 0;
+      // Calculate required value for equal returns
+      let requiredValue = targetReturn / odd;
       
-      // Cashback from fixed bet when it loses
-      const fixedCashbackPercentage = parseFloat(fixedBet.cashback) || 0;
-      cashbackFromOthers += (fixedValue * fixedCashbackPercentage) / 100;
-      
-      // Cashback from other bets (not including current bet i)
-      activeBets.forEach((otherBet, j) => {
-        if (j !== i && j !== fixedIndex) {
-          const otherCashbackPercentage = parseFloat(otherBet.cashback) || 0;
-          const otherValue = parseFloat(otherBet.value) || 0;
-          cashbackFromOthers += (otherValue * otherCashbackPercentage) / 100;
-        }
-      });
-
-      // We need: (value[i] * odd[i]) + cashbackFromOthers = targetProfit
-      // Therefore: value[i] = (targetProfit - cashbackFromOthers) / odd[i]
-      const requiredValue = (targetProfit - cashbackFromOthers) / odd;
-
-      console.log(`Bet ${i}: odd=${odd}, required value=${requiredValue}, cashback from others=${cashbackFromOthers}`);
+      // Apply boost if present
+      if (bet.boost) {
+        const boostPercentage = parseFloat(bet.boost) || 0;
+        const adjustedOdd = (odd - 1) * (1 + boostPercentage / 100) + 1;
+        requiredValue = targetReturn / adjustedOdd;
+      }
 
       if (requiredValue > 0) {
         updated[i] = {
           ...updated[i],
           value: requiredValue.toFixed(2),
-          stake: requiredValue.toFixed(2) // For Back bets, stake = value
+          stake: requiredValue.toFixed(2)
         };
       }
     });
@@ -132,70 +105,61 @@ export default function SurebetCalculator() {
 
   const activeBets = bets.slice(0, numBets);
   
-  // Calculate total invested amount
   const totalInvested = activeBets.reduce((acc, b) => {
     return acc + (parseFloat(b.value) || 0);
   }, 0);
   
-  // Calculate table data for each bet outcome scenario
   const tableData: TableRowData[] = activeBets.map((bet, index) => {
     const value = parseFloat(bet.value) || 0;
-    const odd = calculateRealOdd(bet);
-    const cashbackPercentage = parseFloat(bet.cashback) || 0;
+    let odd = parseFloat(bet.odd) || 0;
     
-    // Calculate return when this bet WINS (normal return)
-    const retornoSeGanhar = odd * value;
+    // Apply boost if present
+    if (bet.boost) {
+      const boostPercentage = parseFloat(bet.boost) || 0;
+      odd = (odd - 1) * (1 + boostPercentage / 100) + 1;
+    }
     
-    // Calculate what happens when this bet LOSES (only cashback)
-    const cashbackValue = (value * cashbackPercentage) / 100;
-    const retornoSePerder = cashbackValue; // Only cashback when losing
+    const retorno = odd * value;
+    let lucro = retorno - totalInvested;
     
-    // Calculate profit when this specific bet WINS
-    let lucroSeGanhar = retornoSeGanhar; // Return from winning bet
-    
-    // Add cashback from all OTHER losing bets
-    activeBets.forEach((otherBet, otherIndex) => {
-      if (otherIndex !== index) {
-        const otherValue = parseFloat(otherBet.value) || 0;
-        const otherCashbackPercentage = parseFloat(otherBet.cashback) || 0;
-        const otherCashback = (otherValue * otherCashbackPercentage) / 100;
-        lucroSeGanhar += otherCashback; // Add cashback from losing bets
-      }
-    });
-    
-    // Subtract total investment
-    lucroSeGanhar -= totalInvested;
+    // Apply commission if enabled
+    if (bet.commission) {
+      lucro = lucro * 0.95; // 5% commission
+    }
     
     const percentage = totalInvested > 0 ? ((value / totalInvested) * 100).toFixed(2) : "0.00";
-    const lucroClass = lucroSeGanhar >= 0 ? "text-green-400" : "text-red-400";
+    const lucroClass = lucro >= 0 ? "text-green-400" : "text-red-400";
     
     return {
       index,
       value,
       percentage,
-      retorno: retornoSeGanhar,
-      lucro: lucroSeGanhar,
+      retorno,
+      lucro,
       lucroClass,
       betType: bet.type,
-      layStake: value, // For Back bets, layStake = value
-      cashbackValue: retornoSePerder,
+      layStake: value,
+      cashbackValue: 0,
       houseName: bet.houseName || `Casa ${index + 1}`
     };
   });
   
-  // Calculate guaranteed return/profit considering all scenarios
   const scenarios = activeBets.map((bet, index) => {
-    const winningReturn = calculateRealOdd(bet) * (parseFloat(bet.value) || 0);
-    const cashbackFromLosing = activeBets.reduce((acc, otherBet, otherIndex) => {
-      if (otherIndex !== index) {
-        const otherValue = parseFloat(otherBet.value) || 0;
-        const otherCashbackPercentage = parseFloat(otherBet.cashback) || 0;
-        return acc + (otherValue * otherCashbackPercentage) / 100;
-      }
-      return acc;
-    }, 0);
+    let odd = parseFloat(bet.odd) || 0;
+    const value = parseFloat(bet.value) || 0;
     
-    return winningReturn + cashbackFromLosing;
+    if (bet.boost) {
+      const boostPercentage = parseFloat(bet.boost) || 0;
+      odd = (odd - 1) * (1 + boostPercentage / 100) + 1;
+    }
+    
+    let winningReturn = odd * value;
+    
+    if (bet.commission) {
+      winningReturn = winningReturn * 0.95;
+    }
+    
+    return winningReturn;
   });
 
   const minReturn = Math.min(...scenarios);
@@ -205,7 +169,6 @@ export default function SurebetCalculator() {
     <div className="min-h-screen bg-betting-bg text-white flex flex-col items-center py-8 px-4 relative overflow-hidden">
       {/* Watermark Background Pattern */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {/* Grid pattern of watermarks */}
         {Array.from({ length: 20 }).map((_, i) => {
           const row = Math.floor(i / 4);
           const col = i % 4;
@@ -236,7 +199,7 @@ export default function SurebetCalculator() {
 
       <h1 className="text-3xl font-bold mb-8 relative z-10">
         <span className="text-white">Calculadora de </span>
-        <span className="text-yellow-400">Cashback</span>
+        <span className="text-yellow-400">Surebet</span>
       </h1>
 
       <div className="mb-6 relative z-10">
@@ -245,7 +208,7 @@ export default function SurebetCalculator() {
           value={numBets}
           onChange={(e) => {
             setNumBets(Number(e.target.value));
-            setFixedStakeIndex(null); // Reset fixed stake quando mudar número de casas
+            setFixedStakeIndex(null);
           }}
           className="p-2 bg-betting-input text-white rounded"
         >
@@ -253,13 +216,12 @@ export default function SurebetCalculator() {
         </select>
       </div>
 
-      {/* Betting Houses Container with Lateral Results */}
+      {/* Betting Houses Container */}
       <div className={`w-full mb-8 relative z-10 ${
         isMobile 
           ? 'flex flex-col gap-4 items-center max-w-xs' 
           : 'flex justify-center items-start gap-8'
       }`}>
-        {/* Betting Houses */}
         <div className={`${
           isMobile 
             ? 'flex flex-col gap-4 w-full' 
@@ -267,7 +229,7 @@ export default function SurebetCalculator() {
         }`}>
           {activeBets.map((bet, index) => (
             <div key={index} className={isMobile ? 'w-full' : 'flex-shrink-0'}>
-              <BettingHouse
+              <SurebetHouse
                 index={index}
                 data={bet}
                 onChange={handleChange}
@@ -279,7 +241,7 @@ export default function SurebetCalculator() {
           ))}
         </div>
 
-        {/* Lateral Results - Only show on desktop */}
+        {/* Results Panel - Desktop only */}
         {!isMobile && (
           <div className="bg-betting-card p-6 rounded-lg border border-gray-700 min-w-[280px]">
             <h2 className="text-xl font-semibold mb-4 text-yellow-400">Resultados</h2>
@@ -310,7 +272,7 @@ export default function SurebetCalculator() {
       <BettingTable 
         tableData={tableData} 
         minReturn={minReturn}
-        freebetIndexes={[]}
+        freebetIndexes={activeBets.map((bet, index) => bet.freebet ? index : -1).filter(i => i >= 0)}
       />
       <ResultsSummary guaranteedProfit={guaranteedProfit} totalInvested={totalInvested} />
 
